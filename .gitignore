@@ -1,0 +1,9 @@
+.*
+!.gitignore
+!.gitmodules
+
+examples/config.js
+
+node_modules
+dist
+package-lock.json

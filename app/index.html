@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode</title>
+		<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';"/>
+
+        <link rel="stylesheet" href="./css/app.css">
+        <link rel="stylesheet" href="./www/css/base.css">
+		<link rel="stylesheet" href="./css/default.css">
+
+		<script type="module" src="./js/index.js"></script>
+	</head>
+	<body>
+		<template data-template="backupstablerow">
+			<div class="tr">
+				<div class="td" style="overflow-x: hidden; text-overflow: ellipsis;" data-var="dir"></div>
+				<div class="td"><button style="margin: 0; padding: 2px 8px; background-color: #e26130" data-remove=""><svg class="icon small"><use href="#gico-remove"/></svg> Remove</button></div>
+			</div>
+		</template>
+		<div id="overlay">
+			<div>
+				<p>Parsing logs, please wait…</p>
+			</div>
+		</div>
+		<div id="framework">
+			<div id="banner">
+				A new version is available. <a href="https://www.wurmnode.com/download" class="openInBrowser" style="color: #fff;">Download</a>
+			</div>
+			<header>
+				<h1>WurmNode</h1>
+			</header>
+			<main>
+				<div>
+					<h2>Main Wurm directory</h2>
+					<div>
+						<div id="wurmdir" style="overflow-x: hidden; text-overflow: ellipsis;">No directory selected.</div>
+					</div>
+					<button id="selectwwurmdirectorybutton">Select Wurm directory</button>
+				</div>
+				<div>
+					<h2>Backup directories</h2>
+					<div>
+						<div class="table" id="backupstable">
+						</div>
+					</div>
+					<button id="addbackupdirectorybutton">Add Wurm backup directory</button>
+				</div>
+				<div>
+					<h2>WebSocket server</h2>
+					<label>
+						<span>Set WebSocket port</span><br/>
+						<input name="wssport" type="number" value=""/>
+					</label>
+					<button id="startwss" style="display: none;">Start</button>
+					<button id="stopwss" style="display: none;">Stop</button>
+					<p>Connections: <span id="wsscount">0</span></p>
+				</div>
+				<div>
+					<h2>Webserver</h2>
+					<div>
+						<div>
+							<div id="webdir" style="overflow-x: hidden; text-overflow: ellipsis;"></div>
+						</div>
+						<button id="selectwebdirectorybutton">Select web root directory</button>
+					</div>
+					<div>
+						<label>
+							<span>Set server port</span><br/>
+							<input name="webport" type="number" value=""/>
+						</label>
+						<button id="startweb" style="display: none;">Start</button>
+						<button id="stopweb" style="display: none;">Stop</button>
+					</div>
+					<button id="openInBrowser">Open in browser</button>
+				</div>
+				<div>
+					<p>Running version <span class="version"></span>.</p>
+				</div>
+			</main>
+		</div>
+
+		<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" display="none">
+			<symbol viewBox="0 0 24 24" id="gico-remove">
+				<path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
+			</symbol>
+		</svg>
+	</body>
+</html>

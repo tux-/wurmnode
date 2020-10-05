@@ -1,0 +1,39 @@
+{
+	"name": "wurmnode",
+	"description": "App for Wurm Online",
+	"main": "app.js",
+	"version": "1.0.0",
+	"scripts": {
+		"start": "electron .",
+		"postinstall": "install-app-deps",
+		"pack": "electron-builder --dir",
+		"dist": "electron-builder",
+		"dist:windows": "electron-builder --windows"
+	},
+	"build": {
+		"appId": "com.wurmnode.app",
+		"productName": "WurmNode",
+		"win": {
+			"target": "NSIS"
+		},
+		"nsis": {
+			"allowToChangeInstallationDirectory": true,
+			"oneClick": false
+		}
+	},
+	"keywords": [
+		"wurm"
+	],
+	"author": "Drogos",
+	"license": "MIT",
+	"devDependencies": {
+		"electron": "^7.3.3",
+		"electron-builder": "^22.8.1",
+		"electron-packager": "^14.2.1"
+	},
+	"dependencies": {
+		"electron-settings": "^4.0.2",
+		"node-fetch": "^2.6.1",
+		"ws": "^7.3.1"
+	}
+}
