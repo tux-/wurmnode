@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode - Basic WebSocket example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="./examples.css">
+
+		<script src="./config.js"></script>
+		<script>
+			config = JSON.parse(config);
+			let server = document.location.hostname;
+			if (server === '') {
+				server = 'localhost';
+			}
+
+			const ws = new WebSocket(`ws://${server}:${config.wsport}`);
+
+			ws.addEventListener('message', function (e) {
+				let message = JSON.parse(e.data);
+				if (message.type === 'ping') {
+					ws.send(JSON.stringify({
+						'type': 'pong'
+					}));
+					return;
+				}
+				document.querySelector('#last').textContent = JSON.stringify(message, null, "\t");
+			});
+		</script>
+	</head>
+	<body>
+		<h1>WurmNode basic WebSocket example</h1>
+		<p>The basic example has no reconnect method, and must be run after the socket has been opened.</p>
+		<pre><code id="last">No data detected yet</code></pre>
+	</body>
+</html>

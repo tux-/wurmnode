@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode - WebSocket wrapper example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="./examples.css">
+
+		<script src="./config.js"></script>
+		<script src="./ws.js"></script>
+		<script>
+			config = JSON.parse(config);
+			let server = document.location.hostname;
+			if (server === '') {
+				server = 'localhost';
+			}
+
+			ws.on('mylistener', (message) => {
+				console.log(message);
+				document.querySelector('#last').textContent = JSON.stringify(message, null, "\t");
+			});
+
+			ws.connect(`ws://${server}:${config.wsport}`);
+		</script>
+	</head>
+	<body>
+		<h1>WurmNode WebSocket wrapper example</h1>
+		<pre><code id="last">No data detected yet</code></pre>
+	</body>
+</html>

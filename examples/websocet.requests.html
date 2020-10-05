@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode - WebSocket request example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="./examples.css">
+
+		<script src="./config.js"></script>
+		<script src="./ws.js"></script>
+		<script>
+			config = JSON.parse(config);
+			let server = document.location.hostname;
+			if (server === '') {
+				server = 'localhost';
+			}
+
+			ws.on('mylistener', (message) => {
+				if (message.type === 'response') {
+					if (message.message.get === 'chars') {
+						document.querySelector('#characters').textContent = JSON.stringify(message, null, "\t");
+						if (message.data.length > 0) {
+							ws.send(JSON.stringify({
+								get: 'char',
+								name: message.data[0]
+							}));
+						}
+					}
+					else if (message.message.get === 'char') {
+						document.querySelector('#character').textContent = JSON.stringify(message, null, "\t");
+					}
+					else {
+						console.log('res', message);
+					}
+				}
+				else {
+					console.log(message);
+				}
+			});
+
+			document.addEventListener('wsready', () => {
+				ws.send(JSON.stringify({
+					get: 'chars'
+				}));
+			});
+
+			ws.connect(`ws://${server}:${config.wsport}`);
+		</script>
+	</head>
+	<body>
+		<h1>WurmNode WebSocket request example</h1>
+
+		<div>
+			<h2>getCharacters</h2>
+			<pre><code id="characters">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>getCharacter</h2>
+			<pre><code id="character">No data detected yet</code></pre>
+		</div>
+	</body>
+</html>

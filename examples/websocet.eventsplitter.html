@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode - WebSocket eventsplitter example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="./examples.css">
+
+		<script src="./config.js"></script>
+		<script src="./ws.js"></script>
+		<script>
+			config = JSON.parse(config);
+			let server = document.location.hostname;
+			if (server === '') {
+				server = 'localhost';
+			}
+
+			ws.on('mylistener', (message) => {
+				if (message.type === 'chat') {
+					document.querySelector('#chat').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'event') {
+					document.querySelector('#event').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'skill') {
+					document.querySelector('#skill').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'level') {
+					document.querySelector('#level').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'combat') {
+					document.querySelector('#combat').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'profile') {
+					document.querySelector('#profile').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'favor') {
+					document.querySelector('#favor').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'pm') {
+					document.querySelector('#pm').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'friend') {
+					document.querySelector('#friend').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'death') {
+					document.querySelector('#death').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'screenshot') {
+					document.querySelector('#screenshot').textContent = JSON.stringify(message, null, "\t");
+				}
+				else if (message.type === 'support') {
+					document.querySelector('#support').textContent = JSON.stringify(message, null, "\t");
+				}
+				else {
+					console.log(message);
+				}
+			});
+
+			ws.connect(`ws://${server}:${config.wsport}`);
+		</script>
+	</head>
+	<body>
+		<h1>WurmNode WebSocket eventsplitter example</h1>
+
+		<div>
+			<h2>Combat</h2>
+			<pre><code id="combat">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Death</h2>
+			<pre><code id="death">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Pm</h2>
+			<pre><code id="pm">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Friend</h2>
+			<pre><code id="friend">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Event</h2>
+			<pre><code id="event">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Level</h2>
+			<pre><code id="level">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Favor</h2>
+			<pre><code id="favor">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Skill</h2>
+			<pre><code id="skill">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Profile</h2>
+			<pre><code id="profile">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Chat</h2>
+			<pre><code id="chat">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Screenshot</h2>
+			<pre><code id="screenshot">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Support</h2>
+			<pre><code id="support">No data detected yet</code></pre>
+		</div>
+	</body>
+</html>
