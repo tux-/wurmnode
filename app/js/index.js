@@ -206,6 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		mainProcess.stopWeb();
 		return false;
 	});
+	document.querySelector('#resetwebdirectorybutton').addEventListener('click', (e) => {
+		e.preventDefault();
+		mainProcess.resetWebDirectory();
+		return false;
+	});
 
 	setTimeout(() => {
 		mainProcess.uiLoaded();

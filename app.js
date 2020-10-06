@@ -322,6 +322,10 @@ exports.selectWebDirectory = () => {
 		}
 	});
 };
+exports.resetWebDirectory = () => {
+	appConfig.unsetSync(`appSave.webmdir`);
+	app.emit('service', 'web', 'newdir');
+};
 
 exports.getWebRoot = () => {
 	let dir = exports.getStorageSync(`webmdir`);
