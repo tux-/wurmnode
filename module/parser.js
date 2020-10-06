@@ -14,16 +14,6 @@ let logfiles = {};
 
 exports.event = new EventEmitter();
 
-exports.ready = new Promise((resolve, reject) => {
-	const wurmdirPromise = appConfig.get(`appSave.wurmdir`);
-	const wurmdirsPromise = appConfig.get(`appSave.wurmdirs`);
-
-	Promise.all([wurmdirPromise, wurmdirsPromise]).then((result) => {
-		init(result);
-		resolve('Data loaded.');
-	});
-});
-
 exports.parse = (returnEvent) => {
 	const wurmdirPromise = appConfig.get(`appSave.wurmdir`);
 	const wurmdirsPromise = appConfig.get(`appSave.wurmdirs`);

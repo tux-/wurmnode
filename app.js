@@ -57,6 +57,9 @@ const createWindow = () => {
 
 		['resize', 'move', 'close'].forEach(event => {
 			win.on(event, () => {
+				if (windowState === undefined) {
+					windowState = {};
+				}
 				if (!win.isMaximized()) {
 					windowState = win.getBounds();
 				}
@@ -171,7 +174,7 @@ exports.selectWurmDirectory = () => {
 				parser.parse('wurmDirectoryUpdated');
 			}
 			else {
-				console.log('Invalid dir.');
+				app.emit('service', 'dir', 'invalid');
 			}
 		}
 	});
@@ -196,7 +199,7 @@ exports.addBackupDirectory = () => {
 				});
 			}
 			else {
-				console.log('Invalid dir.');
+				app.emit('service', 'dir', 'invalid');
 			}
 		}
 	});

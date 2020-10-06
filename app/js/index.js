@@ -46,6 +46,10 @@ const updateService = (service, event, data) => {
 		}
 		return;
 	}
+
+	if ((service === 'dir') && (event === 'invalid')) {
+		alert('Client Files not found in directory');
+	}
 };
 
 const showWurmDir = () => {
