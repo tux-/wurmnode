@@ -100,12 +100,12 @@ const parseSkillLine = (char, date, line, live) => {
 	}
 	else {
 		data = data[1].split(' to ');
-		result.to = parseFloat(data[1]);
+		result.to = parseFloat(data[1].replace(',', '.'));
 		if (inc === true) {
-			result.by = parseFloat(data[0].substr(3));
+			result.by = parseFloat(data[0].substr(3).replace(',', '.'));
 		}
 		else {
-			result.by = -parseFloat(data[0].substr(3));
+			result.by = -parseFloat(data[0].substr(3).replace(',', '.'));
 		}
 	}
 	result.from = Math.round((result.to - result.by) * 10000) / 10000;
