@@ -4,6 +4,7 @@ const fs = require('fs');
 const EventEmitter = require('events');
 const appConfig = require('electron-settings');
 const profiler = require('./profiler.js');
+const EOL = require('os').EOL;
 
 const now = new Date();
 const msinday = 60 * 60 * 24 * 1000;
@@ -247,9 +248,9 @@ const handleLogEvent = (file) => {
 			}
 		});
 
-		data = data.substr(0, data.lastIndexOf("\n") + 1);
+		data = data.substr(0, data.lastIndexOf(EOL) + EOL.length);
 		logfiles[file].size += Buffer.byteLength(data, 'utf8');
-		const lines = data.substr(0, data.length - 1).split("\n");
+		const lines = data.substr(0, data.length - EOL.length).split(EOL);
 
 		for (const line of lines) {
 			if (line.length > 11) {
@@ -283,9 +284,9 @@ const mainLoop = () => {
 
 const loadLog = (char, file, type, live = false) => {
 	let data = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
-	data = data.substr(0, data.lastIndexOf("\n"));
-	const size = Buffer.byteLength(data, 'utf8') + 1;
-	const lines = data.split("\n");
+	data = data.substr(0, data.lastIndexOf(EOL));
+	const size = Buffer.byteLength(data, 'utf8') + EOL.length;
+	const lines = data.split(EOL);
 
 	logfiles[file] = {
 		size: size,
