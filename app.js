@@ -297,6 +297,7 @@ exports.getStorage(`wssstatus`).then((status) => {
 		exports.startWss();
 	}
 });
+exports.setWssPort();
 /* === WebSocket === */
 
 
