@@ -206,7 +206,7 @@ exports.removeBackupDirectory = (index) => {
 	exports.getStorage(`wurmdirs`).then((wurmdirs) => {
 		wurmdirs.splice(index, 1);
 		exports.setStorageSync(`wurmdirs`, wurmdirs);
-		app.emit('backupDirectoryUpdated');
+		parser.parse('backupDirectoryUpdated');
 	});
 };
 
@@ -217,7 +217,11 @@ exports.getChar = (name) => {
 	return profiler.getCharacterData(name);
 };
 
-exports.ready = Promise.all([parser.ready, fetchedLatest]);
+exports.uiLoaded = () => {
+	parser.parse('initialized');
+};
+
+exports.ready = Promise.all([fetchedLatest]);
 
 parser.event.on('event', (type, data) => {
 	app.emit('event', type, data);
@@ -229,10 +233,6 @@ parser.event.on('parsed', (type) => {
 profiler.event.on('profile', (type, data) => {
 	app.emit('profile', type, data);
 	ws.broadcast('profile', type, data);
-});
-
-parser.ready.then((e) => {
-	console.log(e);
 });
 
 app.on('ready', () => {

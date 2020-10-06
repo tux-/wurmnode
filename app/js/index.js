@@ -53,7 +53,9 @@ const showWurmDir = () => {
 		if (r !== undefined) {
 			document.querySelector('#wurmdir').textContent = r;
 		}
-		document.querySelector('#overlay').style.display = 'none';
+		if (initialized) {
+			document.querySelector('#overlay').style.display = 'none';
+		}
 	});
 };
 const showBackupDirs = () => {
@@ -67,13 +69,18 @@ const showBackupDirs = () => {
 				c.querySelector('[data-var="dir"]').textContent = r[i];
 				c.querySelector('[data-remove]').addEventListener('click', (e) => {
 					e.preventDefault();
-					mainProcess.removeBackupDirectory(i);
+					showLoadOverlay();
+					setTimeout(() => {
+						mainProcess.removeBackupDirectory(i);
+					}, 1);
 					return false;
 				});
 				backupstable.appendChild(c);
 			}
 		}
-		document.querySelector('#overlay').style.display = 'none';
+		if (initialized) {
+			document.querySelector('#overlay').style.display = 'none';
+		}
 	});
 };
 
@@ -81,25 +88,33 @@ const showLoadOverlay = () => {
 	document.querySelector('#overlay').style.display = 'grid';
 };
 
-
 const showWebDir = () => {
 	document.querySelector('#webdir').textContent = mainProcess.getWebRoot();
 };
 
+const dataLoaded = () => {
+	initialized = true;
+	document.querySelector('#overlay').style.display = 'none';
+};
+
+let initialized = false;
+
 document.addEventListener('DOMContentLoaded', () => {
+	showLoadOverlay();
 
 	remote.app.on('wurmDirectoryUpdated', showWurmDir);
 	remote.app.on('backupDirectoryUpdated', showBackupDirs);
+	remote.app.on('initialized', dataLoaded);
 	remote.app.on('loading', showLoadOverlay);
 	remote.app.on('service', updateService);
 
 	window.addEventListener('beforeunload', () => {
 		remote.app.removeListener('wurmDirectoryUpdated', showWurmDir);
 		remote.app.removeListener('backupDirectoryUpdated', showBackupDirs);
+		remote.app.removeListener('initialized', dataLoaded);
 		remote.app.removeListener('loading', showLoadOverlay);
 		remote.app.removeListener('service', updateService);
 	});
-
 
 	mainProcess.ready.then((e) => {
 		if (mainProcess.updateAvailable()) {
@@ -191,4 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		mainProcess.stopWeb();
 		return false;
 	});
+
+	setTimeout(() => {
+		mainProcess.uiLoaded();
+	}, 50);
 });
