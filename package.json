@@ -13,8 +13,13 @@
 	"build": {
 		"appId": "com.wurmnode.app",
 		"productName": "WurmNode",
+		"linux": {
+			"target": ["AppImage"],
+			"category": "Games"
+		},
 		"win": {
-			"target": "NSIS"
+			"target": "NSIS",
+			"icon": "build/icon.png"
 		},
 		"nsis": {
 			"allowToChangeInstallationDirectory": true,
@@ -28,8 +33,7 @@
 	"license": "MIT",
 	"devDependencies": {
 		"electron": "^7.3.3",
-		"electron-builder": "^22.8.1",
-		"electron-packager": "^14.2.1"
+		"electron-builder": "^22.8.1"
 	},
 	"dependencies": {
 		"electron-settings": "^4.0.2",

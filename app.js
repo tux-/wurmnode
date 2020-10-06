@@ -36,6 +36,7 @@ const createWindow = () => {
 			webPreferences: {
 				nodeIntegration: true
 			},
+			icon: path.join(__dirname, '/app/www/favicon.png'),
 		};
 
 		if (windowState !== undefined) {
