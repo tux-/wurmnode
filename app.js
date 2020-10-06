@@ -324,7 +324,7 @@ exports.selectWebDirectory = () => {
 exports.getWebRoot = () => {
 	let dir = exports.getStorageSync(`webmdir`);
 	if ((typeof dir !== 'string') || (!fs.existsSync(dir))) {
-		dir = __dirname + '/examples/';
+		dir = __dirname + path.sep + 'examples' + path.sep;
 	}
 	return dir;
 };
