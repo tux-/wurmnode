@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode - WebSocket favor example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="./examples.css">
+
+		<script src="./config.js"></script>
+		<script src="./ws.js"></script>
+		<script>
+			config = JSON.parse(config);
+			let server = document.location.hostname;
+			if (server === '') {
+				server = 'localhost';
+			}
+
+			ws.on('mylistener', (message) => {
+				if (message.type === 'response') {
+					if (message.message.get === 'chars') {
+						document.querySelector('#constrainer').textContent = '';
+						for (char of message.data) {
+							if (message.data.length > 0) {
+								ws.send(JSON.stringify({
+									get: 'char',
+									name: char
+								}));
+							}
+						}
+					}
+					else if (message.message.get === 'char') {
+						if (message.data.skills.Faith === undefined) {
+							return;
+						}
+						if (message.data.skills.Channeling === undefined) {
+							return;
+						}
+						if (message.data.skills.Faith.value <= 30) {
+							return;
+						}
+
+						let t = document.querySelector('#characterbox');
+						let c = document.importNode(t.content, true);
+
+						c.querySelector('[data-char]').dataset.char = message.data.name;
+						c.querySelector('[data-var="char"]').textContent = message.data.name;
+						if (message.data.skills.Favor.value >= 50) {
+							c.querySelector('[data-char]').classList.add('ready');
+						}
+
+						c.querySelector('[data-var="faith"]').textContent = message.data.skills.Faith.value;
+						if (message.data.skills.Favor !== undefined) {
+							c.querySelector('[data-var="favor"]').textContent = message.data.skills.Favor.value;
+						}
+						if (message.data.skills.Channeling !== undefined) {
+							c.querySelector('[data-var="channeling"]').textContent = message.data.skills.Channeling.value;
+						}
+
+						document.querySelector('#constrainer').appendChild(c);
+					}
+				}
+				if (message.type === 'skill') {
+					if (message.data.name === 'Faith') {
+						const chatBox = document.querySelector('[data-char="' + message.data.char + '"]');
+						if (chatBox === null) {
+							return;
+						}
+						chatBox.querySelector('[data-var="faith"]').textContent = message.data.to;
+					}
+					if (message.data.name === 'Channeling') {
+						const chatBox = document.querySelector('[data-char="' + message.data.char + '"]');
+						if (chatBox === null) {
+							return;
+						}
+						chatBox.querySelector('[data-var="channeling"]').textContent = message.data.to;
+					}
+				}
+				if (message.type === 'favor') {
+					const chatBox = document.querySelector('[data-char="' + message.data.char + '"]');
+					if (chatBox === null) {
+						return;
+					}
+					chatBox.querySelector('[data-var="favor"]').textContent = message.data.to;
+					if (message.data.to >= 50) {
+						chatBox.classList.add('ready');
+					}
+					else {
+						chatBox.classList.remove('ready');
+					}
+				}
+			});
+
+			document.addEventListener('wsready', () => {
+				ws.send(JSON.stringify({
+					get: 'chars'
+				}));
+			});
+
+			ws.connect(`ws://${server}:${config.wsport}`);
+		</script>
+		<style>
+			.ready {
+				color: #c00;
+			}
+		</style>
+	</head>
+	<body>
+		<template id="characterbox">
+			<div data-char="">
+				<h2 data-var="char"></h2>
+				<p>Faith: <span data-var="faith">Unknown</span></p>
+				<p>Channeling: <span data-var="channeling">Unknown</span></p>
+				<p>Favor: <span data-var="favor">Unknown</span></p>
+			</div>
+		</template>
+		<h1>WurmNode WebSocket favor example</h1>
+
+		<div id="constrainer"></div>
+	</body>
+</html>
