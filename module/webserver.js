@@ -19,6 +19,9 @@ exports.start = (root, port) => {
 		if (file === '') {
 			file = 'index.html';
 		}
+		if (file.includes('?')) {
+			file = file.slice(0, file.indexOf('?'));
+		}
 		fs.readFile(root + file, function (err,data) {
 			if (err) {
 				res.writeHead(404);
