@@ -70,7 +70,7 @@ const parseSkillLine = (char, date, line, live) => {
 		inc = false;
 	}
 	if (data === null) {
-		console.log(char, date, line);
+		console.log('parseSkillLine', char, date, line);
 		return;
 	}
 	const result = {
@@ -113,6 +113,9 @@ const parseCharEventLive = (char, date, text, live) => {
 };
 
 const handleLine = (char, type, date, text, live) => {
+
+	text = text.replace(/^\s+|\s+$/g, '');
+
 	if (type === '_Event') {
 		const data = {
 			char: char,
@@ -197,9 +200,11 @@ const handleLine = (char, type, date, text, live) => {
 };
 
 const loadLine = (file, line, live = true) => {
+	line = line.replace(/[^\x20-\x7E]+/g, '');
 	if (line === '') {
 		return;
 	}
+
 	if (line.startsWith('Logging started')) {
 		const date = line.substr(16);
 		if (date.length !== 10) {
