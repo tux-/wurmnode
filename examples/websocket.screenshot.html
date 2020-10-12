@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode - WebSocket screenshot example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="./examples.css">
+
+		<script src="./config.js"></script>
+		<script src="./ws.js"></script>
+		<script>
+			config = JSON.parse(config);
+			let server = document.location.hostname;
+			if (server === '') {
+				server = 'localhost';
+			}
+
+			const cameraaudio = new Audio('./camera.mp3');
+
+			ws.connect(`ws://${server}:${config.wsport}`);
+
+			document.addEventListener('DOMContentLoaded', () => {
+				document.querySelector('#interaction').addEventListener('click', function () {
+					this.style.display = 'none';
+					document.querySelector('#output').style.display = 'block';
+
+					ws.on('mylistener', (message) => {
+						if (message.type === 'screenshot') {
+							cameraaudio.play();
+							document.querySelector('#screenshot').textContent = JSON.stringify(message, null, "\t");
+							document.querySelector('#screenshotwrapper').innerHTML = '<img style="max-width: 100%;" src="./ss/' + encodeURIComponent(message.data.dir) + '/' + message.data.filename + '"/>';
+						}
+					});
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<h1>WurmNode WebSocket screenshot example</h1>
+
+		<button id="interaction">Interaction needed for sound, click me!</button>
+
+		<div id="output" style="display: none;">
+			<h2>Screenshot</h2>
+			<pre><code id="screenshot">No data detected yet</code></pre>
+			<div id="screenshotwrapper"></div>
+		</div>
+	</body>
+</html>

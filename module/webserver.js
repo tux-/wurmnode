@@ -3,6 +3,7 @@
 const http = require('http');
 const fs = require('fs');
 const EventEmitter = require('events');
+const parser = require('./parser.js');
 
 const webServerSockets = new Set();
 let webServer = null;
@@ -22,7 +23,30 @@ exports.start = (root, port) => {
 		if (file.includes('?')) {
 			file = file.slice(0, file.indexOf('?'));
 		}
-		fs.readFile(root + file, function (err,data) {
+		if (file.startsWith('ss/')) {
+			const ss = file.split('/');
+			if (ss[2] !== undefined) {
+				const folder = decodeURIComponent(ss[1]);
+				if (parser.screenshotDirs.includes(folder)) {
+					fs.readFile(folder + ss[2], function (err, data) {
+						if (err) {
+							res.writeHead(404);
+							res.end(JSON.stringify(err));
+							return;
+						}
+						if (file.endsWith('.png')) {
+							res.writeHead(200, {'Content-type': 'image/png'});
+						}
+						if (file.endsWith('.jpg')) {
+							res.writeHead(200, {'Content-type': 'image/jpeg'});
+						}
+						res.end(data);
+					});
+					return;
+				}
+			}
+		}
+		fs.readFile(root + file, function (err, data) {
 			if (err) {
 				res.writeHead(404);
 				res.end(JSON.stringify(err));

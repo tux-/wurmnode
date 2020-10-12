@@ -24,6 +24,8 @@ exports.parse = (returnEvent) => {
 	});
 };
 
+exports.screenshotDirs = [];
+
 const init = (result) => {
 	for (const dir in watchers) {
 		watchers[dir].watcher.close();
@@ -423,6 +425,9 @@ const loadLogs = (wurmdirs) => {
 						}
 						loadLog(char, wurmdir + 'players/' + char + '/logs/' + file, fileinfo[0]);
 					});
+					if (fs.existsSync(wurmdir + 'players/' + char + '/screenshots/')) {
+						exports.screenshotDirs.push(wurmdir + 'players/' + char + '/screenshots/');
+					}
 				}
 			});
 		}

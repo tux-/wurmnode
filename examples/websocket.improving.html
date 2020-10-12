@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode - WebSocket eventsplitter example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="./examples.css">
+
+		<script src="./config.js"></script>
+		<script src="./ws.js"></script>
+		<script>
+			config = JSON.parse(config);
+			let server = document.location.hostname;
+			if (server === '') {
+				server = 'localhost';
+			}
+
+			let last = 'Examine to update.';
+			let damage = 0;
+
+			ws.on('mylistener', (message) => {
+				if (message.type === 'event') {
+					let ql = Array.from(message.data.text.matchAll(/\. Ql\: ([\d\.\,]*) Dam\: (.*)$/ig));
+					if (ql[0] !== undefined) {
+						document.querySelector('#quality').textContent = ql[0][1].slice(0, -1);
+						damage = parseFloat(ql[0][2].slice(0, -1).replace(',', '.'));
+
+						if (message.data.text.includes(' could be improved with some stone shards.')) {
+							last = 'stone shards';
+							document.querySelector('#action').textContent = last;
+						}
+						else if (message.data.text.includes(' has some irregularities that must be removed with a stone chisel.')) {
+							last = 'chisel';
+							document.querySelector('#action').textContent = last;
+						}
+						else if (message.data.text.includes(' could be improved with a log.')) {
+							last = 'log';
+							document.querySelector('#action').textContent = last;
+						}
+						else if (message.data.text.includes('You notice some notches you must carve away in order to improve the ')) {
+							last = 'carving knife';
+							document.querySelector('#action').textContent = last;
+						}
+						else if (message.data.text.includes('You must use a file to smooth out the ')) {
+							last = 'file';
+							document.querySelector('#action').textContent = last;
+						}
+						else if (message.data.text.includes('You must use a mallet on the ')) {
+							last = 'mallet';
+							document.querySelector('#action').textContent = last;
+						}
+						else if (message.data.text.includes('You will want to polish the ')) {
+							last = 'pelt';
+							document.querySelector('#action').textContent = last;
+						}
+						if (damage > 0) {
+							document.querySelector('#action').textContent = 'repair!';
+						}
+						return;
+					}
+					if (message.data.text.includes(' is in too poor shape to improve the ')) {
+						document.querySelector('#action').textContent = 'Item too low quality.';
+						return;
+					}
+					if (message.data.text.startsWith('You damage the ')) {
+						document.querySelector('#action').textContent = 'repair!';
+						damage = true;
+						return;
+					}
+					if (message.data.text.startsWith('You start repairing')) {
+						document.querySelector('#action').textContent = 'repairing…';
+						return;
+					}
+					if (message.data.text.startsWith('You start to improve ')) {
+						document.querySelector('#action').textContent = 'improving…';
+						return;
+					}
+					if (message.data.text.startsWith('You start chipping ')) {
+						document.querySelector('#action').textContent = 'improving…';
+						return;
+					}
+					if (message.data.text.startsWith('You start carving ')) {
+						document.querySelector('#action').textContent = 'improving…';
+						return;
+					}
+					if (message.data.text.startsWith('You start filing ')) {
+						document.querySelector('#action').textContent = 'improving…';
+						return;
+					}
+					if (message.data.text.startsWith('You start polishing ')) {
+						document.querySelector('#action').textContent = 'improving…';
+						return;
+					}
+					if (message.data.text.startsWith('You start hammering ')) {
+						document.querySelector('#action').textContent = 'improving…';
+						return;
+					}
+					if (message.data.text.startsWith('You stop ')) {
+						if (damage > 0) {
+							document.querySelector('#action').textContent = 'repair!';
+						}
+						else {
+							document.querySelector('#action').textContent = last;
+						}
+						return;
+					}
+
+					if (message.data.text.startsWith('You repair the ')) {
+						document.querySelector('#action').textContent = last;
+						damage = 0;
+						return;
+					}
+
+					if (message.data.text.endsWith(' could be improved with a log.')) {
+						last = 'log';
+					}
+					else if (message.data.text.endsWith(' could be improved with some more log.')) {
+						last = 'log';
+					}
+					else if (message.data.text.endsWith(' has some irregularities that must be removed with a stone chisel.')) {
+						last = 'chisel';
+					}
+					else if (message.data.text.endsWith(' could be improved with some stone shards.')) {
+						last = 'stone shards';
+					}
+					else if (message.data.text.startsWith('You will want to polish the ')) {
+						last = 'pelt';
+					}
+					else if (message.data.text.startsWith('You must use a file to smooth out the ')) {
+						last = 'file';
+					}
+					else if (message.data.text.startsWith('You must use a mallet on the ')) {
+						last = 'mallet';
+					}
+					else if (message.data.text.startsWith('You notice some notches you must carve away in order to improve ')) {
+						last = 'carving knife';
+					}
+					else {
+						return;
+					}
+
+					if (damage > 0) {
+						document.querySelector('#action').textContent = 'repair!';
+						return;
+					}
+
+					document.querySelector('#action').textContent = last;
+				}
+			});
+
+			ws.connect(`ws://${server}:${config.wsport}`);
+		</script>
+	</head>
+	<body>
+		<h1>WurmNode WebSocket improving example</h1>
+		<p>This example is ment to aid when improving wooden or stone items on ground.</p>
+
+		<div>
+			<h2>Action</h2>
+			<pre><code id="action">No data detected yet</code></pre>
+		</div>
+		<div>
+			<h2>Quality</h2>
+			<pre><code id="quality">No data detected yet</code></pre>
+		</div>
+
+	</body>
+</html>
