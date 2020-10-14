@@ -34,7 +34,8 @@ const createWindow = () => {
 			minWidth: 1000,
 			minHeight: 400,
 			webPreferences: {
-				nodeIntegration: true
+				nodeIntegration: true,
+				enableRemoteModule: true
 			},
 			icon: path.join(__dirname, '/app/www/favicon.png'),
 		};
