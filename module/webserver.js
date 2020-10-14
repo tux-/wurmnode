@@ -4,6 +4,7 @@ const http = require('http');
 const fs = require('fs');
 const EventEmitter = require('events');
 const parser = require('./parser.js');
+const mainProcess = require('../app.js');
 
 const webServerSockets = new Set();
 let webServer = null;
@@ -45,6 +46,11 @@ exports.start = (root, port) => {
 					return;
 				}
 			}
+		}
+		if (file === 'config.js') {
+			res.writeHead(200, {'Content-type': 'application/javascript'});
+			res.end("'use strict';\n\nlet config = `{\"wsport\":" + mainProcess.getWssPort() + "}`;\n");
+			return;
 		}
 		fs.readFile(root + file, function (err, data) {
 			if (err) {

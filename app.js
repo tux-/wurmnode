@@ -295,7 +295,6 @@ exports.getWssPort = () => {
 };
 exports.setWssPort = (port) => {
 	exports.setStorageSync(`wssport`, parseInt(port));
-	fs.writeFileSync(__dirname + '/examples/config.js', "'use strict';\n\nlet config = `{\"wsport\":" + exports.getWssPort() + "}`;\n");
 };
 exports.getStorage(`wssstatus`).then((status) => {
 	if (status === 'start') {
