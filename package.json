@@ -2,7 +2,7 @@
 	"name": "wurmnode",
 	"description": "App for Wurm Online",
 	"main": "app.js",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"scripts": {
 		"start": "electron .",
 		"postinstall": "install-app-deps",
