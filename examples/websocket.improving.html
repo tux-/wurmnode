@@ -25,39 +25,7 @@
 					if (ql[0] !== undefined) {
 						document.querySelector('#quality').textContent = ql[0][1].slice(0, -1);
 						damage = parseFloat(ql[0][2].slice(0, -1).replace(',', '.'));
-
-						if (message.data.text.includes(' could be improved with some stone shards.')) {
-							last = 'stone shards';
-							document.querySelector('#action').textContent = last;
-						}
-						else if (message.data.text.includes(' has some irregularities that must be removed with a stone chisel.')) {
-							last = 'chisel';
-							document.querySelector('#action').textContent = last;
-						}
-						else if (message.data.text.includes(' could be improved with a log.')) {
-							last = 'log';
-							document.querySelector('#action').textContent = last;
-						}
-						else if (message.data.text.includes('You notice some notches you must carve away in order to improve the ')) {
-							last = 'carving knife';
-							document.querySelector('#action').textContent = last;
-						}
-						else if (message.data.text.includes('You must use a file to smooth out the ')) {
-							last = 'file';
-							document.querySelector('#action').textContent = last;
-						}
-						else if (message.data.text.includes('You must use a mallet on the ')) {
-							last = 'mallet';
-							document.querySelector('#action').textContent = last;
-						}
-						else if (message.data.text.includes('You will want to polish the ')) {
-							last = 'pelt';
-							document.querySelector('#action').textContent = last;
-						}
-						if (damage > 0) {
-							document.querySelector('#action').textContent = 'repair!';
-						}
-						return;
+						// return;
 					}
 					if (message.data.text.includes(' is in too poor shape to improve the ')) {
 						document.querySelector('#action').textContent = 'Item too low quality.';
@@ -112,28 +80,31 @@
 						return;
 					}
 
-					if (message.data.text.endsWith(' could be improved with a log.')) {
+					if (message.data.text.includes(' could be improved with a log.')) {
 						last = 'log';
 					}
 					else if (message.data.text.endsWith(' could be improved with some more log.')) {
 						last = 'log';
 					}
-					else if (message.data.text.endsWith(' has some irregularities that must be removed with a stone chisel.')) {
+					else if (message.data.text.includes(' has some irregularities that must be removed with a stone chisel.')) {
 						last = 'chisel';
 					}
-					else if (message.data.text.endsWith(' could be improved with some stone shards.')) {
+					else if (message.data.text.includes(' could be improved with some stone shards.')) {
 						last = 'stone shards';
 					}
-					else if (message.data.text.startsWith('You will want to polish the ')) {
+					else if (message.data.text.includes(' could be improved with some more stone shards.')) {
+						last = 'stone shards';
+					}
+					else if (message.data.text.includes('You will want to polish the ')) {
 						last = 'pelt';
 					}
-					else if (message.data.text.startsWith('You must use a file to smooth out the ')) {
+					else if (message.data.text.includes('You must use a file to smooth out the ')) {
 						last = 'file';
 					}
-					else if (message.data.text.startsWith('You must use a mallet on the ')) {
+					else if (message.data.text.includes('You must use a mallet on the ')) {
 						last = 'mallet';
 					}
-					else if (message.data.text.startsWith('You notice some notches you must carve away in order to improve ')) {
+					else if (message.data.text.includes('You notice some notches you must carve away in order to improve the ')) {
 						last = 'carving knife';
 					}
 					else {
@@ -154,7 +125,7 @@
 	</head>
 	<body>
 		<h1>WurmNode WebSocket improving example</h1>
-		<p>This example is ment to aid when improving wooden or stone items on ground.</p>
+		<p>This example is ment to aid when improving a single wooden or stone items that must remain on the ground.</p>
 
 		<div>
 			<h2>Action</h2>

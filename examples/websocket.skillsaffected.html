@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode - WebSocket affected skills example</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="./examples.css">
+
+		<script src="./config.js"></script>
+		<script src="./ws.js"></script>
+		<script>
+			config = JSON.parse(config);
+			let server = document.location.hostname;
+			if (server === '') {
+				server = 'localhost';
+			}
+
+			const affected = {};
+
+			ws.on('mylistener', (message) => {
+				if (message.type === 'skill') {
+					if (affected[message.data.char] === undefined) {
+						affected[message.data.char] = {};
+					}
+					if (affected[message.data.char][message.data.name] === undefined) {
+						affected[message.data.char][message.data.name] = {
+							name: message.data.name,
+							start: message.data.from,
+							current: message.data.to,
+							ticks: 1,
+						};
+					}
+					else {
+						affected[message.data.char][message.data.name].current = message.data.to;
+						affected[message.data.char][message.data.name].ticks++;
+					}
+					document.querySelector('#skill').textContent = JSON.stringify(affected, null, "\t");
+				}
+			});
+
+			ws.connect(`ws://${server}:${config.wsport}`);
+		</script>
+	</head>
+	<body>
+		<h1>WurmNode WebSocket affected skills example</h1>
+		<p>This example will show the skills affected by your in game actions since this page was loaded.</p>
+
+		<div>
+			<h2>Skill</h2>
+			<pre><code id="skill">No data detected yet</code></pre>
+		</div>
+	</body>
+</html>

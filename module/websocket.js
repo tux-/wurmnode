@@ -5,6 +5,8 @@ const EventEmitter = require('events');
 
 let wss = null;
 
+let cconnections = 0;
+
 exports.event = new EventEmitter();
 
 exports.start = (port) => {
@@ -36,7 +38,9 @@ exports.start = (port) => {
 
 	exports.event.emit('start');
 
-	wss.on('connection', (ws, req) => {
+	wss.on('connection', (ws, req, client) => {
+		cconnections++;
+		ws.id = cconnections;
 		ws.isAlive = true;
 
 		exports.event.emit('count', wss.clients.size);
@@ -94,11 +98,20 @@ exports.stop = () => {
 };
 
 exports.send = (type, client, message, data) => {
-	client.send(JSON.stringify({
-		type: type,
-		message: message,
-		data: data,
-	}));
+	if (typeof client === 'number') {
+		wss.clients.forEach(function each(instance) {
+			if (instance.id === client) {
+				client = instance;
+			}
+		});
+	}
+	if (typeof client !== 'number') {
+		client.send(JSON.stringify({
+			type: type,
+			message: message,
+			data: data,
+		}));
+	}
 };
 
 exports.broadcast = (type, subtype, data) => {

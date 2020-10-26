@@ -1,9 +1,8 @@
 'use strict';
 
 const {app, Menu, BrowserWindow, dialog} = require('electron');
+const {Worker} = require('worker_threads');
 const appConfig = require('electron-settings');
-const profiler = require('./module/profiler.js');
-const parser = require('./module/parser.js');
 const path = require('path');
 const fs = require('fs');
 const fetch = require('node-fetch');
@@ -30,7 +29,7 @@ const createWindow = () => {
 
 		const winProp = {
 			width: 1000,
-			height:height,
+			height: height,
 			minWidth: 1000,
 			minHeight: 400,
 			webPreferences: {
@@ -150,6 +149,8 @@ exports.getVersion = () => {
 
 
 /* --- General --- */
+const parser = new Worker(__dirname + '/worker/parser.js');
+
 const getAccountsDir = basePath => {
 	return basePath + 'players' + path.sep;
 };
@@ -172,7 +173,7 @@ exports.selectWurmDirectory = () => {
 			if (validateWurmDirectory(basePath.filePaths[0]  + path.sep)) {
 				exports.setStorageSync(`wurmdir`, basePath.filePaths[0]  + path.sep);
 				app.emit('loading');
-				parser.parse('wurmDirectoryUpdated');
+				parser.postMessage({call: 'parse', param: 'wurmDirectoryUpdated'});
 			}
 			else {
 				app.emit('service', 'dir', 'invalid');
@@ -196,7 +197,7 @@ exports.addBackupDirectory = () => {
 					wurmdirs.push(basePath.filePaths[0]  + path.sep);
 					exports.setStorageSync(`wurmdirs`, wurmdirs);
 					app.emit('loading');
-					parser.parse('backupDirectoryUpdated');
+					parser.postMessage({call: 'parse', param: 'backupDirectoryUpdated'});
 				});
 			}
 			else {
@@ -210,7 +211,7 @@ exports.removeBackupDirectory = (index) => {
 	exports.getStorage(`wurmdirs`).then((wurmdirs) => {
 		wurmdirs.splice(index, 1);
 		exports.setStorageSync(`wurmdirs`, wurmdirs);
-		parser.parse('backupDirectoryUpdated');
+		parser.postMessage({call: 'parse', param: 'backupDirectoryUpdated'});
 	});
 };
 
@@ -221,22 +222,44 @@ exports.getChar = (name) => {
 	return profiler.getCharacterData(name);
 };
 
+parser.postMessage({call: 'parse', param: 'initialized'});
+
 exports.uiLoaded = () => {
-	parser.parse('initialized');
 };
 
 exports.ready = Promise.all([fetchedLatest]);
 
-parser.event.on('event', (type, data) => {
-	app.emit('event', type, data);
-	ws.broadcast('event', type, data);
-});
-parser.event.on('parsed', (type) => {
-	app.emit(type);
-});
-profiler.event.on('profile', (type, data) => {
-	app.emit('profile', type, data);
-	ws.broadcast('profile', type, data);
+exports.screenshotsDirs = [];
+
+parser.on('message', (data) => {
+	if (data.name === 'parsed') {
+		app.emit(data.type);
+	}
+	else if (data.name === 'event') {
+		app.emit('event', data.type, data.data);
+		ws.broadcast('event', data.type, data.data);
+	}
+	else if (data.name === 'profile') {
+		app.emit('profile', data.type, data.data);
+		ws.broadcast('profile', data.type, data.data);
+	}
+	else if (data.name === 'getWurmDirs') {
+		const wurmdirPromise = appConfig.get(`appSave.wurmdir`);
+		const wurmdirsPromise = appConfig.get(`appSave.wurmdirs`);
+
+		Promise.all([wurmdirPromise, wurmdirsPromise]).then((result) => {
+			parser.postMessage({call: 'realParse', dirs: result, param: data.param});
+		});
+	}
+	else if (data.name === 'screenshotDirs') {
+		exports.screenshotsDirs = data.data;
+	}
+	else if (data.name === 'getData') {
+		ws.send('response', data.instance, data.message, data.data);
+	}
+	else if (data.name === 'error') {
+		throw data;
+	}
 });
 
 app.on('ready', () => {
@@ -268,10 +291,10 @@ ws.event.on('count', (count) => {
 ws.event.on('message', (data, instance) => {
 	const message = JSON.parse(data);
 	if (message.get === 'chars') {
-		ws.send('response', instance, message, profiler.getCharacters());
+		parser.postMessage({call: 'getCharacters', instance: instance.id, message: message});
 	}
 	else if ((message.get === 'char') && (message.name !== undefined)) {
-		ws.send('response', instance, message, profiler.getCharacterData(message.name));
+		parser.postMessage({call: 'getChar', char: message.name, instance: instance.id, message: message});
 	}
 	else {
 		console.log(message);

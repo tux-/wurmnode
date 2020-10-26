@@ -3,7 +3,6 @@
 const http = require('http');
 const fs = require('fs');
 const EventEmitter = require('events');
-const parser = require('./parser.js');
 const mainProcess = require('../app.js');
 
 const webServerSockets = new Set();
@@ -28,7 +27,7 @@ exports.start = (root, port) => {
 			const ss = file.split('/');
 			if (ss[2] !== undefined) {
 				const folder = decodeURIComponent(ss[1]);
-				if (parser.screenshotDirs.includes(folder)) {
+				if (mainProcess.screenshotsDirs.includes(folder)) {
 					fs.readFile(folder + ss[2], function (err, data) {
 						if (err) {
 							res.writeHead(404);

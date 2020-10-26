@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const EventEmitter = require('events');
-const appConfig = require('electron-settings');
 const profiler = require('./profiler.js');
 const EOL = require('os').EOL;
 
@@ -14,14 +13,9 @@ let logfiles = {};
 
 exports.event = new EventEmitter();
 
-exports.parse = (returnEvent) => {
-	const wurmdirPromise = appConfig.get(`appSave.wurmdir`);
-	const wurmdirsPromise = appConfig.get(`appSave.wurmdirs`);
-
-	Promise.all([wurmdirPromise, wurmdirsPromise]).then((result) => {
-		init(result);
-		exports.event.emit('parsed', returnEvent);
-	});
+exports.parse = (result, returnEvent) => {
+	init(result);
+	exports.event.emit('parsed', returnEvent);
 };
 
 exports.screenshotDirs = [];
