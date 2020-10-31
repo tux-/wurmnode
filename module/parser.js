@@ -123,6 +123,7 @@ const handleLine = (char, type, date, text, live) => {
 		}
 		data.live = live;
 		profiler.checkEvent(data);
+		return data;
 	}
 	else if (type === '_Skills') {
 		const data = parseSkillLine(char, date, text, live);
@@ -141,48 +142,53 @@ const handleLine = (char, type, date, text, live) => {
 		}
 		data.live = live;
 		profiler.checkSkill(data);
+		return data;
 	}
 	else if (type === '_Friends') {
+		const data = parseCharEventLive(char, date, text, live);
+		data.char = char;
+		data.date = date;
 		if (live) {
-			const data = parseCharEventLive(char, date, text, live);
-			data.char = char;
-			data.date = date;
 			exports.event.emit('event', 'friend', data);
 		}
+		return data;
 	}
 	else if (type === '_Deaths') {
+		const data = parseCharEventLive(char, date, text, live);
+		data.char = char;
+		data.date = date;
 		if (live) {
-			const data = parseCharEventLive(char, date, text, live);
-			data.char = char;
-			data.date = date;
 			exports.event.emit('event', 'death', data);
 		}
+		return data;
 	}
 	else if (type === '_Support') {
+		const data = {
+			char: char,
+			date: date,
+			text: text,
+		};
 		if (live) {
-			const data = {
-				char: char,
-				date: date,
-				text: text,
-			};
 			exports.event.emit('event', 'support', data);
 		}
+		return data;
 	}
 	else if (type === '_Combat') {
+		const data = {
+			char: char,
+			date: date,
+			text: text,
+		};
 		if (live) {
-			const data = {
-				char: char,
-				date: date,
-				text: text,
-			};
 			exports.event.emit('event', 'combat', data);
 		}
+		return data;
 	}
 	else {
+		const data = parseChatLine(char, type, date, text, live);
+		data.char = char;
+		data.date = date;
 		if (live) {
-			const data = parseChatLine(char, type, date, text, live);
-			data.char = char;
-			data.date = date;
 			if (type.startsWith('PM__')) {
 				data.channel = type.substr(4);
 				exports.event.emit('event', 'pm', data);
@@ -192,6 +198,7 @@ const handleLine = (char, type, date, text, live) => {
 				exports.event.emit('event', 'chat', data);
 			}
 		}
+		return data;
 	}
 };
 
@@ -223,7 +230,7 @@ const loadLine = (file, line, live = true) => {
 	const linestring = line.substr(11);
 
 	logfiles[file].time = time;
-	handleLine(logfiles[file].char, logfiles[file].type, date, linestring, live);
+	return handleLine(logfiles[file].char, logfiles[file].type, date, linestring, live);
 };
 
 const handleLogEvent = (file) => {

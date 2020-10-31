@@ -26,7 +26,8 @@
 		"nsis": {
 			"allowToChangeInstallationDirectory": true,
 			"oneClick": false
-		}
+		},
+		"asar": false
 	},
 	"keywords": [
 		"wurm"
@@ -34,12 +35,14 @@
 	"author": "Drogos",
 	"license": "MIT",
 	"devDependencies": {
-		"electron": "^10.1.3",
+		"electron": "^10.1.5",
 		"electron-builder": "^22.9.1"
 	},
 	"dependencies": {
 		"electron-settings": "^4.0.2",
 		"node-fetch": "^2.6.1",
+		"serialport": "^9.0.2",
+		"sqlite3": "^5.0.0",
 		"ws": "^7.3.1"
 	}
 }
