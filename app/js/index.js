@@ -1,91 +1,15 @@
 'use strict';
 
-const {remote} = require('electron');
-const mainProcess = remote.require('./app.js');
-const shell = require('electron').shell;
-
-const updateService = (service, event, data) => {
-	if (service === 'ws') {
-		if (event === 'count') {
-			document.querySelector('#wsscount').textContent = '' + data;
-			return;
-		}
-
-		let target = null;
-		if (event === 'start') {
-			target = document.querySelector('#stopwss');
-		}
-		else if (event === 'stop') {
-			target = document.querySelector('#startwss');
-		}
-		if (target !== null) {
-			document.querySelector('#startwss').style.display = 'none';
-			document.querySelector('#stopwss').style.display = 'none';
-			target.style.display = 'inline-block';
-		}
+const updateService = (data) => {
+	if (data.ws === 'count') {
+		document.querySelector('#wsscount').textContent = '' + data.count;
 		return;
 	}
-
-	if (service === 'web') {
-		if (event === 'newdir') {
-			showWebDir();
-			return;
-		}
-
-		let target = null;
-		if (event === 'start') {
-			target = document.querySelector('#stopweb');
-		}
-		else if (event === 'stop') {
-			target = document.querySelector('#startweb');
-		}
-		if (target !== null) {
-			document.querySelector('#startweb').style.display = 'none';
-			document.querySelector('#stopweb').style.display = 'none';
-			target.style.display = 'inline-block';
-		}
+	else if (data.web === 'newdir') {
+		document.querySelector('#webdir').textContent = data.value;
 		return;
 	}
-
-	if ((service === 'dir') && (event === 'invalid')) {
-		alert('Client Files not found in directory');
-	}
-};
-
-const showWurmDir = () => {
-	mainProcess.getStorage('wurmdir').then((r) => {
-		if (r !== undefined) {
-			document.querySelector('#wurmdir').textContent = r;
-		}
-		if (initialized) {
-			document.querySelector('#overlay').style.display = 'none';
-		}
-	});
-};
-const showBackupDirs = () => {
-	mainProcess.getStorage('wurmdirs').then((r) => {
-		if (r !== undefined) {
-			const backupstable = document.querySelector('#backupstable');
-			backupstable.textContent = '';
-			for (const i in r) {
-				const t = document.querySelector('[data-template="backupstablerow"]');
-				let c = document.importNode(t.content, true);
-				c.querySelector('[data-var="dir"]').textContent = r[i];
-				c.querySelector('[data-remove]').addEventListener('click', (e) => {
-					e.preventDefault();
-					showLoadOverlay();
-					setTimeout(() => {
-						mainProcess.removeBackupDirectory(i);
-					}, 1);
-					return false;
-				});
-				backupstable.appendChild(c);
-			}
-		}
-		if (initialized) {
-			document.querySelector('#overlay').style.display = 'none';
-		}
-	});
+	console.log(data);
 };
 
 const showLoadOverlay = () => {
@@ -99,124 +23,186 @@ const showWebDir = () => {
 const dataLoaded = () => {
 	initialized = true;
 	document.querySelector('#overlay').style.display = 'none';
+	window.app.send('updateAvailable');
 };
 
 let initialized = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-	showLoadOverlay();
-
-	remote.app.on('wurmDirectoryUpdated', showWurmDir);
-	remote.app.on('backupDirectoryUpdated', showBackupDirs);
-	remote.app.on('initialized', dataLoaded);
-	remote.app.on('loading', showLoadOverlay);
-	remote.app.on('service', updateService);
-
-	window.addEventListener('beforeunload', () => {
-		remote.app.removeListener('wurmDirectoryUpdated', showWurmDir);
-		remote.app.removeListener('backupDirectoryUpdated', showBackupDirs);
-		remote.app.removeListener('initialized', dataLoaded);
-		remote.app.removeListener('loading', showLoadOverlay);
-		remote.app.removeListener('service', updateService);
-	});
-
-	mainProcess.ready.then((e) => {
-		if (mainProcess.updateAvailable()) {
-			document.querySelector('html').classList.add('banner');
+	window.addEventListener('wurmnode', event => {
+		if (event.detail.event === 'wurmDirectoryUpdated') {
+			window.app.send('getWurmDir');
+		}
+		else if (event.detail.event === 'backupDirectoryUpdated') {
+			window.app.send('getBackupDirs');
+		}
+		else if (event.detail.event === 'initialized') {
+			dataLoaded();
+		}
+		else if (event.detail.event === 'loading') {
+			showLoadOverlay();
+		}
+		else if (event.detail.event === 'service') {
+			updateService(event.detail);
+		}
+		else if (event.detail.event === 'ready') {
+		}
+		else if (event.detail.event === 'updateAvailable') {
+			if (event.detail.updateAvailable === true) {
+				document.querySelector('html').classList.add('banner');
+			}
+		}
+		else if (event.detail.event === 'isParsing') {
+			if (event.detail.isParsing === false) {
+				dataLoaded();
+			}
+		}
+		else if (event.detail.event === 'getVersion') {
+			document.querySelectorAll('.version').forEach((elem) => {
+				elem.textContent = event.detail.version;
+			});
+		}
+		else if (event.detail.event === 'getWurmDir') {
+			if (event.detail.dir !== undefined) {
+				document.querySelector('#wurmdir').textContent = event.detail.dir;
+			}
+			if (initialized) {
+				document.querySelector('#overlay').style.display = 'none';
+			}
+		}
+		else if (event.detail.event === 'getBackupDirs') {
+			const backupstable = document.querySelector('#backupstable');
+			backupstable.textContent = '';
+			if (event.detail.dirs !== undefined) {
+				for (const i in event.detail.dirs) {
+					const t = document.querySelector('[data-template="backupstablerow"]');
+					let c = document.importNode(t.content, true);
+					c.querySelector('[data-var="dir"]').textContent = event.detail.dirs[i];
+					c.querySelector('[data-remove]').addEventListener('click', (e) => {
+						e.preventDefault();
+						showLoadOverlay();
+						setTimeout(() => {
+							window.app.send('removeBackupDirectory', i);
+						}, 1);
+						return false;
+					});
+					backupstable.appendChild(c);
+				}
+			}
+			if (initialized) {
+				document.querySelector('#overlay').style.display = 'none';
+			}
+		}
+		else if (event.detail.event === 'getWssPort') {
+			document.querySelector('input[name="wssport"]').value = event.detail.value;
+		}
+		else if (event.detail.event === 'getWssStatus') {
+			if (event.detail.value === 'start') {
+				document.querySelector('#startwss').style.display = 'none';
+				document.querySelector('#stopwss').style.display = 'inline-block';
+			}
+			else {
+				document.querySelector('#stopwss').style.display = 'none';
+				document.querySelector('#startwss').style.display = 'inline-block';
+			}
+		}
+		else if (event.detail.event === 'getWebRoot') {
+			document.querySelector('#webdir').textContent = event.detail.value;
+		}
+		else if (event.detail.event === 'getWebPort') {
+			document.querySelector('input[name="webport"]').value = event.detail.value;
+		}
+		else if (event.detail.event === 'getWebStatus') {
+			if (event.detail.value === 'start') {
+				document.querySelector('#startweb').style.display = 'none';
+				document.querySelector('#stopweb').style.display = 'inline-block';
+			}
+			else {
+				document.querySelector('#stopweb').style.display = 'none';
+				document.querySelector('#startweb').style.display = 'inline-block';
+			}
+		}
+		else if ((event.detail.data === undefined) || (event.detail.data.type !== 'favor')) {
+			// console.log(event.detail);
 		}
 	});
+	showLoadOverlay();
+	window.app.send('isParsing');
+
 	document.querySelector('#openInBrowser').addEventListener('click', e => {
 		e.preventDefault();
-		shell.openExternal('http://localhost:' + mainProcess.getWebPort() + '/');
+		window.app.send('openLocalServer');
 		return false;
 	});
 	document.querySelectorAll('.openInBrowser').forEach((elem) => {
 		elem.addEventListener('click', (e) => {
 			e.preventDefault();
-			shell.openExternal(elem.href);
+			window.app.send('openExternal', elem.href);
 			return false;
 		});
 	});
 
-
-	document.querySelectorAll('.version').forEach((elem) => {
-		elem.textContent = mainProcess.getVersion();
-	});
+	window.app.send('getVersion');
 	document.querySelector('#selectwwurmdirectorybutton').addEventListener('click', e => {
 		e.preventDefault();
-		mainProcess.selectWurmDirectory();
+		window.app.send('selectWurmDirectory');
 		return false;
 	});
 	document.querySelector('#addbackupdirectorybutton').addEventListener('click', e => {
 		e.preventDefault();
-		mainProcess.addBackupDirectory();
+		window.app.send('addBackupDirectory');
 		return false;
 	});
 
 
-	showWurmDir();
-	showBackupDirs();
-	document.querySelector('input[name="wssport"]').value = mainProcess.getWssPort();
-	mainProcess.getStorage('wssstatus').then((r) => {
-		if (r === 'start') {
-			document.querySelector('#stopwss').style.display = 'inline-block';
-		}
-		else {
-			document.querySelector('#startwss').style.display = 'inline-block';
-		}
-	});
+	window.app.send('getWurmDir');
+	window.app.send('getBackupDirs');
+	window.app.send('getWssPort');
+	window.app.send('getWssStatus');
+	window.app.send('getWssCount');
 	document.querySelector('input[name="wssport"]').addEventListener('input', (e) => {
-		mainProcess.setWssPort(e.target.value);
+		window.app.send('setWssPort', e.target.value);
 	});
 	document.querySelector('#startwss').addEventListener('click', (e) => {
 		e.preventDefault();
-		mainProcess.startWss();
-		document.querySelector('input[name="wssport"]').value = mainProcess.getWssPort();
+		window.app.send('startWss');
 		return false;
 	});
 	document.querySelector('#stopwss').addEventListener('click', (e) => {
 		e.preventDefault();
-		mainProcess.stopWss();
+		window.app.send('stopWss');
 		return false;
 	});
 
 
-	showWebDir();
-	document.querySelector('input[name="webport"]').value = mainProcess.getWebPort();
-	mainProcess.getStorage('webstatus').then((r) => {
-		if (r === 'start') {
-			document.querySelector('#stopweb').style.display = 'inline-block';
-		}
-		else {
-			document.querySelector('#startweb').style.display = 'inline-block';
-		}
-	});
+	window.app.send('getWebRoot');
+	window.app.send('getWebPort');
+	window.app.send('getWebStatus');
 	document.querySelector('#selectwebdirectorybutton').addEventListener('click', e => {
 		e.preventDefault();
-		mainProcess.selectWebDirectory();
+		window.app.send('selectWebDirectory');
 		return false;
 	});
 	document.querySelector('input[name="webport"]').addEventListener('input', (e) => {
-		mainProcess.setWebPort(e.target.value);
+		window.app.send('setWebPort', e.target.value);
 	});
 	document.querySelector('#startweb').addEventListener('click', (e) => {
 		e.preventDefault();
-		mainProcess.startWeb();
-		document.querySelector('input[name="webport"]').value = mainProcess.getWebPort();
+		window.app.send('startWeb');
 		return false;
 	});
 	document.querySelector('#stopweb').addEventListener('click', (e) => {
 		e.preventDefault();
-		mainProcess.stopWeb();
+		window.app.send('stopWeb');
 		return false;
 	});
 	document.querySelector('#resetwebdirectorybutton').addEventListener('click', (e) => {
 		e.preventDefault();
-		mainProcess.resetWebDirectory();
+		window.app.send('resetWebDirectory');
 		return false;
 	});
 
 	setTimeout(() => {
-		mainProcess.uiLoaded();
+		window.app.send('uiLoaded');
 	}, 50);
 });

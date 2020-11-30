@@ -1,6 +1,6 @@
 'use strict';
 
-const {app, Menu, BrowserWindow, dialog} = require('electron');
+const {app, Menu, BrowserWindow, dialog, ipcMain, shell} = require('electron');
 const {Worker} = require('worker_threads');
 const appConfig = require('electron-settings');
 const path = require('path');
@@ -14,6 +14,7 @@ console.log('Starting WurnNode…');
 let ENV_MODE = 'production';
 
 let win = null;
+let isParsing = false;
 
 if (process.argv[2] === '--dev') {
 	ENV_MODE = 'dev';
@@ -33,8 +34,8 @@ const createWindow = () => {
 			minWidth: 1000,
 			minHeight: 400,
 			webPreferences: {
-				nodeIntegration: true,
-				enableRemoteModule: true
+				contextIsolation: true,
+				preload: path.join(__dirname, 'app/js/preload.js'),
 			},
 			icon: path.join(__dirname, '/app/www/favicon.png'),
 		};
@@ -118,11 +119,20 @@ exports.setStorageSync = (index, data) => {
 exports.setStorage = (index, data) => {
 	return appConfig.set(`appSave.${index}`, data);
 };
+ipcMain.handle('getStorage', async (event, index) => {
+	return exports.getStorage(index);
+});
 exports.getStorage = (index) => {
 	return appConfig.get(`appSave.${index}`);
 };
+ipcMain.on('getStorageSync', async (event, index) => {
+	return exports.getStorageSync(index);
+});
 exports.getStorageSync = (index) => {
 	return appConfig.getSync(`appSave.${index}`);
+};
+exports.unsetStorageSync = (index) => {
+	appConfig.unsetSync(`appSave.${index}`);
 };
 /* === Storage setup === */
 
@@ -139,9 +149,21 @@ let fetchedLatest = fetch('https://www.wurmnode.com/version.txt', {
 	}
 }).catch((e) => {});
 
+ipcMain.on('updateAvailable', (event, args) => {
+	win.webContents.send('wurmnode', {
+		event: 'updateAvailable',
+		updateAvailable: !isLatest,
+	});
+});
 exports.updateAvailable = () => {
 	return !isLatest;
 };
+ipcMain.on('getVersion', (event, args) => {
+	win.webContents.send('wurmnode', {
+		event: 'getVersion',
+		version: app.getVersion(),
+	});
+});
 exports.getVersion = () => {
 	return app.getVersion();
 };
@@ -163,57 +185,12 @@ const validateWurmDirectory = basePath => {
 	return false;
 };
 
-exports.selectWurmDirectory = () => {
-	let wowDir = dialog.showOpenDialog(win, {
-		properties: ['openDirectory']
+ipcMain.on('isParsing', (event, index) => {
+	win.webContents.send('wurmnode', {
+		event: 'isParsing',
+		isParsing: isParsing,
 	});
-
-	wowDir.then(basePath => {
-		if (basePath.canceled === false) {
-			if (validateWurmDirectory(basePath.filePaths[0]  + path.sep)) {
-				exports.setStorageSync(`wurmdir`, basePath.filePaths[0]  + path.sep);
-				app.emit('loading');
-				parser.postMessage({call: 'parse', param: 'wurmDirectoryUpdated'});
-			}
-			else {
-				app.emit('service', 'dir', 'invalid');
-			}
-		}
-	});
-};
-
-exports.addBackupDirectory = () => {
-	let wowDir = dialog.showOpenDialog(win, {
-		properties: ['openDirectory']
-	});
-
-	wowDir.then(basePath => {
-		if (basePath.canceled === false) {
-			if (validateWurmDirectory(basePath.filePaths[0]  + path.sep)) {
-				exports.getStorage(`wurmdirs`).then((wurmdirs) => {
-					if (wurmdirs === undefined) {
-						wurmdirs = [];
-					}
-					wurmdirs.push(basePath.filePaths[0]  + path.sep);
-					exports.setStorageSync(`wurmdirs`, wurmdirs);
-					app.emit('loading');
-					parser.postMessage({call: 'parse', param: 'backupDirectoryUpdated'});
-				});
-			}
-			else {
-				app.emit('service', 'dir', 'invalid');
-			}
-		}
-	});
-};
-
-exports.removeBackupDirectory = (index) => {
-	exports.getStorage(`wurmdirs`).then((wurmdirs) => {
-		wurmdirs.splice(index, 1);
-		exports.setStorageSync(`wurmdirs`, wurmdirs);
-		parser.postMessage({call: 'parse', param: 'backupDirectoryUpdated'});
-	});
-};
+});
 
 exports.getChar = (name) => {
 	if (name === undefined) {
@@ -227,19 +204,36 @@ parser.postMessage({call: 'parse', param: 'initialized'});
 exports.uiLoaded = () => {
 };
 
+Promise.all([fetchedLatest]).then(() => {
+	win.webContents.send('wurmnode', {
+		event: 'ready',
+	});
+});
+
 exports.ready = Promise.all([fetchedLatest]);
 
 exports.screenshotsDirs = [];
 
 parser.on('message', (data) => {
 	if (data.name === 'parsed') {
+		win.webContents.send('wurmnode', {
+			event: data.type,
+		});
 		app.emit(data.type);
 	}
 	else if (data.name === 'event') {
+		win.webContents.send('wurmnode', {
+			event: 'event',
+			data: data,
+		});
 		app.emit('event', data.type, data.data);
 		ws.broadcast('event', data.type, data.data);
 	}
 	else if (data.name === 'profile') {
+		win.webContents.send('wurmnode', {
+			event: 'profile',
+			data: data,
+		});
 		app.emit('profile', data.type, data.data);
 		ws.broadcast('profile', data.type, data.data);
 	}
@@ -256,6 +250,9 @@ parser.on('message', (data) => {
 	}
 	else if (data.name === 'getData') {
 		ws.send('response', data.instance, data.message, data.data);
+	}
+	else if (data.name === 'parsing') {
+		isParsing = data.message;
 	}
 	else if (data.name === 'error') {
 		throw data;
@@ -278,14 +275,117 @@ app.on('activate', () => {
 /* === General === */
 
 
+/* --- Directories --- */
+ipcMain.on('selectWurmDirectory', (event, args) => {
+	let wurmDir = dialog.showOpenDialog(win, {
+		properties: ['openDirectory']
+	});
+
+	wurmDir.then(basePath => {
+		if (basePath.canceled === false) {
+			if (validateWurmDirectory(basePath.filePaths[0]  + path.sep)) {
+				exports.setStorageSync(`wurmdir`, basePath.filePaths[0]  + path.sep);
+				win.webContents.send('wurmnode', {
+					event: 'loading',
+				});
+				app.emit('loading');
+				parser.postMessage({call: 'parse', param: 'wurmDirectoryUpdated'});
+			}
+			else {
+				win.webContents.send('wurmnode', {
+					event: 'service',
+					dir: 'invalid',
+				});
+				app.emit('service', 'dir', 'invalid');
+			}
+		}
+	});
+});
+
+ipcMain.on('addBackupDirectory', (event, args) => {
+	let wowDir = dialog.showOpenDialog(win, {
+		properties: ['openDirectory']
+	});
+
+	wowDir.then(basePath => {
+		if (basePath.canceled === false) {
+			if (validateWurmDirectory(basePath.filePaths[0]  + path.sep)) {
+				exports.getStorage(`wurmdirs`).then((wurmdirs) => {
+					if (wurmdirs === undefined) {
+						wurmdirs = [];
+					}
+					wurmdirs.push(basePath.filePaths[0]  + path.sep);
+					exports.setStorageSync(`wurmdirs`, wurmdirs);
+					win.webContents.send('wurmnode', {
+						event: 'loading',
+					});
+					app.emit('loading');
+					parser.postMessage({call: 'parse', param: 'backupDirectoryUpdated'});
+				});
+			}
+			else {
+				win.webContents.send('wurmnode', {
+					event: 'service',
+					dir: 'invalid',
+				});
+				app.emit('service', 'dir', 'invalid');
+			}
+		}
+	});
+});
+
+
+ipcMain.on('getWurmDir', (event, args) => {
+	exports.getStorage('wurmdir').then((r) => {
+		win.webContents.send('wurmnode', {
+			event: 'getWurmDir',
+			dir: r,
+		});
+	});
+});
+
+ipcMain.on('getBackupDirs', (event, args) => {
+	exports.getStorage('wurmdirs').then((r) => {
+		win.webContents.send('wurmnode', {
+			event: 'getBackupDirs',
+			dirs: r,
+		});
+	});
+});
+
+ipcMain.on('removeBackupDirectory', (event, index) => {
+	exports.getStorage(`wurmdirs`).then((wurmdirs) => {
+		wurmdirs.splice(index, 1);
+		exports.setStorageSync(`wurmdirs`, wurmdirs);
+		parser.postMessage({call: 'parse', param: 'backupDirectoryUpdated'});
+	});
+});
+/* === Directories === */
+
+
 /* --- WebSocket --- */
 ws.event.on('close', () => {
+	win.webContents.send('wurmnode', {
+		event: 'getWssStatus',
+		value: 'stop',
+	});
 	app.emit('service', 'ws', 'stop');
 });
 ws.event.on('start', () => {
+	if (win !== null) {
+		win.webContents.send('wurmnode', {
+			event: 'getWssStatus',
+			value: 'start',
+		});
+	}
 	app.emit('service', 'ws', 'start');
 });
 ws.event.on('count', (count) => {
+	win.webContents.send('wurmnode', {
+		event: 'service',
+		ws: 'count',
+		count: count,
+	});
 	app.emit('service', 'ws', 'count', count);
 });
 ws.event.on('message', (data, instance) => {
@@ -300,15 +400,51 @@ ws.event.on('message', (data, instance) => {
 		console.log(message);
 	}
 });
+ipcMain.on('startWss', (event, args) => {
+	exports.setStorage(`wssstatus`, 'start');
+	const port = exports.getWssPort();
+	ws.start(port);
+});
 exports.startWss = () => {
 	exports.setStorage(`wssstatus`, 'start');
 	const port = exports.getWssPort();
 	ws.start(port);
 };
+ipcMain.on('stopWss', (event, args) => {
+	exports.setStorage(`wssstatus`, 'stop');
+	ws.stop();
+});
 exports.stopWss = () => {
 	exports.setStorage(`wssstatus`, 'stop');
 	ws.stop();
 };
+ipcMain.on('getWssPort', (event, args) => {
+	win.webContents.send('wurmnode', {
+		event: 'getWssPort',
+		value: exports.getWssPort(),
+	});
+});
+ipcMain.on('getWssStatus', (event, args) => {
+	exports.getStorage('wssstatus').then((r) => {
+		win.webContents.send('wurmnode', {
+			event: 'getWssStatus',
+			value: r,
+		});
+	});
+});
+ipcMain.on('getWssCount', (event, args) => {
+	win.webContents.send('wurmnode', {
+		event: 'service',
+		ws: 'count',
+		count: ws.getCount(),
+	});
+});
+ipcMain.on('openExternal', (event, args) => {
+	shell.openExternal(args);
+});
+ipcMain.on('openLocalServer', (event, args) => {
+	shell.openExternal('http://localhost:' + exports.getWebPort() + '/');
+});
 exports.getWssPort = () => {
 	let port = parseInt(exports.getStorageSync(`wssport`));
 	if ((isNaN(port)) || (port < 1024) || (port > 65535)) {
@@ -316,6 +452,9 @@ exports.getWssPort = () => {
 	}
 	return port;
 };
+ipcMain.on('setWssPort', (event, port) => {
+	exports.setStorageSync(`wssport`, parseInt(port));
+});
 exports.setWssPort = (port) => {
 	exports.setStorageSync(`wssport`, parseInt(port));
 };
@@ -324,19 +463,27 @@ exports.getStorage(`wssstatus`).then((status) => {
 		exports.startWss();
 	}
 });
-exports.setWssPort();
 /* === WebSocket === */
 
 
 /* --- Web Server --- */
 web.event.on('close', () => {
+	win.webContents.send('wurmnode', {
+		event: 'getWebStatus',
+		value: 'stop',
+	});
 	app.emit('service', 'web', 'stop');
 });
 web.event.on('start', () => {
+	if (win !== null) {
+		win.webContents.send('wurmnode', {
+			event: 'getWebStatus',
+			value: 'start',
+		});
+	}
 	app.emit('service', 'web', 'start');
 });
-
-exports.selectWebDirectory = () => {
+ipcMain.on('selectWebDirectory', (event, args) => {
 	let webDir = dialog.showOpenDialog(win, {
 		properties: ['openDirectory']
 	});
@@ -344,15 +491,29 @@ exports.selectWebDirectory = () => {
 	webDir.then(basePath => {
 		if (basePath.canceled === false) {
 			exports.setStorageSync(`webmdir`, basePath.filePaths[0]  + path.sep);
+			win.webContents.send('wurmnode', {
+				event: 'service',
+				web: 'newdir',
+				value: basePath.filePaths[0]  + path.sep,
+			});
 			app.emit('service', 'web', 'newdir');
 		}
 	});
-};
-exports.resetWebDirectory = () => {
+});
+ipcMain.on('resetWebDirectory', (event, args) => {
 	appConfig.unsetSync(`appSave.webmdir`);
-	app.emit('service', 'web', 'newdir');
-};
+	win.webContents.send('wurmnode', {
+		event: 'getWebRoot',
+		value: exports.getWebRoot(),
+	});
+});
 
+ipcMain.on('getWebRoot', (event, args) => {
+	win.webContents.send('wurmnode', {
+		event: 'getWebRoot',
+		value: exports.getWebRoot(),
+	});
+});
 exports.getWebRoot = () => {
 	let dir = exports.getStorageSync(`webmdir`);
 	if ((typeof dir !== 'string') || (!fs.existsSync(dir))) {
@@ -360,6 +521,12 @@ exports.getWebRoot = () => {
 	}
 	return dir;
 };
+ipcMain.on('getWebPort', (event, args) => {
+	win.webContents.send('wurmnode', {
+		event: 'getWebPort',
+		value: exports.getWebPort(),
+	});
+});
 exports.getWebPort = () => {
 	let port = parseInt(exports.getStorageSync(`webport`));
 	if ((isNaN(port)) || (port < 1024) || (port > 65535)) {
@@ -368,6 +535,12 @@ exports.getWebPort = () => {
 	return port;
 };
 
+ipcMain.on('startWeb', (event, args) => {
+	exports.setStorage(`webstatus`, 'start');
+	const root = exports.getWebRoot();
+	const port = exports.getWebPort();
+	web.start(root, port);
+});
 exports.startWeb = () => {
 	exports.setStorage(`webstatus`, 'start');
 	const root = exports.getWebRoot();
@@ -378,9 +551,22 @@ exports.stopWeb = () => {
 	exports.setStorage(`webstatus`, 'stop');
 	web.stop();
 };
+ipcMain.on('stopWeb', (event, args) => {
+	exports.setStorage(`webstatus`, 'stop');
+	web.stop();
+});
+ipcMain.on('setWebPort', (event, port) => {
+	exports.setStorageSync(`webport`, parseInt(port));
+});
 exports.setWebPort = (port) => {
 	exports.setStorageSync(`webport`, parseInt(port));
 };
+ipcMain.on('getWebStatus', (event, args) => {
+	win.webContents.send('wurmnode', {
+		event: 'getWebStatus',
+		value: exports.getStorageSync(`webstatus`),
+	});
+});
 exports.getStorage(`webstatus`).then((status) => {
 	if (status === 'start') {
 		exports.startWeb();

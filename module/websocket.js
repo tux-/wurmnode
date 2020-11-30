@@ -45,7 +45,7 @@ exports.start = (port) => {
 
 		exports.event.emit('count', wss.clients.size);
 
-		ws.on('message', function incoming(message) {
+		ws.on('message', function incoming (message) {
 			ws.isAlive = true;
 			let json = JSON.parse(message);
 			if (json.type === 'pong') {
@@ -57,6 +57,14 @@ exports.start = (port) => {
 			}
 			else {
 				exports.event.emit('message', json, ws);
+			}
+		});
+		ws.on('close', (code, reason) => {
+			if (wss === null) {
+				exports.event.emit('count', 0);
+			}
+			else {
+				exports.event.emit('count', wss.clients.size);
 			}
 		});
 
@@ -84,10 +92,18 @@ exports.start = (port) => {
 	}, 30000);
 
 	wss.on('close', () => {
-		exports.event.emit('close');
 		clearInterval(interval);
 		wss = null;
+		exports.event.emit('close');
+		exports.event.emit('count', 0);
 	});
+};
+
+exports.getCount = () => {
+	if (wss === null) {
+		return 0;
+	}
+	return wss.clients.size;
 };
 
 exports.stop = () => {

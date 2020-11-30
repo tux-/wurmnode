@@ -10,11 +10,13 @@ parentPort.on('message', (data) => {
 	}
 	else if (data.call === 'realParse') {
 		try {
+			parentPort.postMessage({name: 'parsing', message: true});
 			parser.parse(data.dirs, data.param);
 		}
 		catch (e) {
 			parentPort.postMessage({name: 'error', message: e});
 		};
+		parentPort.postMessage({name: 'parsing', message: false});
 	}
 	else if (data.call === 'getCharacters') {
 		parentPort.postMessage({name: 'getData', original: 'getCharacters', data: profiler.getCharacters(), instance: data.instance, message: data.message});
