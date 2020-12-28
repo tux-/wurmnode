@@ -1,0 +1,30 @@
+<script type="application/vnd.gimle.page" src="js/settings.js"></script>
+
+<template data-template="backupstablerow">
+	<div class="tr">
+		<div class="td" style="overflow: hidden; text-overflow: ellipsis;" data-var="dir"></div>
+		<div class="td"><button class="alert" data-remove=""><svg class="icon small"><use href="#gico-remove"/></svg></button></div>
+	</div>
+</template>
+<main style="padding: 10px;">
+	<h1>Settings</h1>
+	<div class="table" style="width: 500px; padding: 20px 0;">
+		<label style="width: 500px; display: grid; grid-template-columns: 120px auto;">
+			<span style="white-space: nowrap; align-self: center;">Client files</span>
+			<div style="display: grid; grid-template-columns: 1fr auto auto;">
+				<input type="text" value="" id="wurmdir" readonly placeholder="No directory selected." style="padding: 2px 4px;"/>
+				<button id="selectwwurmdirectorybutton" title="Locate folder"><svg class="icon small"><use href="#gico-folder-open"/></svg></button>
+				<a href="https://www.wurmpedia.com/index.php/Client_Files" class="button openInBrowser" title="More info on Wurmpedia"><svg class="icon small"><use href="#gico-question"/></svg></a>
+			</div>
+		</label>
+
+		<div class="row" style="padding-top: 30px;">
+			<div style="display: grid; grid-template-columns: 1fr auto;">
+				<h2>Backup directories</h2>
+				<button title=""><svg class="icon small" title="Add" id="addbackupdirectorybutton"><use href="#gico-add"/></svg></button>
+			</div>
+		</div>
+		<div id="backupstable" style="display: grid; grid-template-columns: 1fr auto;">
+		</div>
+	</div>
+</main>

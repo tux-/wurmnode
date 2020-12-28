@@ -1,6 +1,6 @@
 'use strict';
 
-const {app, Menu, BrowserWindow, dialog, ipcMain, shell} = require('electron');
+const {app, Menu, BrowserWindow, dialog, ipcMain, shell, powerMonitor} = require('electron');
 const {Worker} = require('worker_threads');
 const appConfig = require('electron-settings');
 const path = require('path');
@@ -134,6 +134,9 @@ exports.getStorageSync = (index) => {
 exports.unsetStorageSync = (index) => {
 	appConfig.unsetSync(`appSave.${index}`);
 };
+exports.unsetStorage = (index) => {
+	return appConfig.unset(`appSave.${index}`);
+};
 /* === Storage setup === */
 
 
@@ -199,8 +202,6 @@ exports.getChar = (name) => {
 	return profiler.getCharacterData(name);
 };
 
-parser.postMessage({call: 'parse', param: 'initialized'});
-
 exports.uiLoaded = () => {
 };
 
@@ -254,10 +255,23 @@ parser.on('message', (data) => {
 	else if (data.name === 'parsing') {
 		isParsing = data.message;
 	}
+	else if (data.name === 'working') {
+		win.webContents.send('wurmnode', {
+			event: 'working',
+			data: data.data,
+		});
+	}
 	else if (data.name === 'error') {
-		throw data;
+		win.webContents.send('wurmnode', {
+			event: 'error',
+			data: data,
+		});
+		console.log(data);
+		// throw data;
 	}
 });
+
+parser.postMessage({call: 'parse', param: 'initialized'});
 
 app.on('ready', () => {
 	createWindow();
@@ -424,6 +438,19 @@ ipcMain.on('getWssPort', (event, args) => {
 		value: exports.getWssPort(),
 	});
 });
+ipcMain.on('resetWssPort', (event, args) => {
+	exports.unsetStorage('wssport').then(() => {
+		ws.event.once('close', () => {
+			const port = exports.getWssPort();
+			ws.start(port);
+			win.webContents.send('wurmnode', {
+				event: 'getWssPort',
+				value: port,
+			});
+		});
+		ws.stop();
+	});
+});
 ipcMain.on('getWssStatus', (event, args) => {
 	exports.getStorage('wssstatus').then((r) => {
 		win.webContents.send('wurmnode', {
@@ -525,6 +552,20 @@ ipcMain.on('getWebPort', (event, args) => {
 	win.webContents.send('wurmnode', {
 		event: 'getWebPort',
 		value: exports.getWebPort(),
+	});
+});
+ipcMain.on('resetWebPort', (event, args) => {
+	exports.unsetStorage('webport').then(() => {
+		web.event.once('close', () => {
+			const root = exports.getWebRoot();
+			const port = exports.getWebPort();
+			web.start(root, port);
+			win.webContents.send('wurmnode', {
+				event: 'getWebPort',
+				value: port,
+			});
+		});
+		web.stop();
 	});
 });
 exports.getWebPort = () => {

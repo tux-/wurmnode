@@ -14,7 +14,14 @@ parentPort.on('message', (data) => {
 			parser.parse(data.dirs, data.param);
 		}
 		catch (e) {
-			parentPort.postMessage({name: 'error', message: e});
+			const error = {
+				message: e.message,
+				name: e.name,
+				debug: e,
+				data: JSON.parse(JSON.stringify(e)),
+			};
+			parentPort.postMessage({name: 'error', message: error});
+			console.log(error);
 		};
 		parentPort.postMessage({name: 'parsing', message: false});
 	}
@@ -32,6 +39,9 @@ parser.event.on('event', (type, data) => {
 parser.event.on('parsed', (type) => {
 	parentPort.postMessage({name: 'parsed', type: type});
 	parentPort.postMessage({name: 'screenshotDirs', data: parser.screenshotDirs});
+});
+parser.event.on('working', (type, data) => {
+	parentPort.postMessage({name: 'working', type: type, data: data});
 });
 profiler.event.on('profile', (type, data) => {
 	parentPort.postMessage({name: 'profile', type: type, data: data});

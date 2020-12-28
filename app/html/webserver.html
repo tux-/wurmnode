@@ -1,0 +1,60 @@
+<script type="application/vnd.gimle.page" src="js/webserver.js"></script>
+
+<template data-template="backupstablerow">
+	<div class="tr">
+		<div class="td" style="overflow: hidden; text-overflow: ellipsis;" data-var="dir"></div>
+		<div class="td"><button class="del" data-remove=""><svg class="icon small"><use href="#gico-remove"/></svg></button></div>
+	</div>
+</template>
+<main style="padding: 10px;">
+	<h1>Webserver</h1>
+	<div class="table" style="width: 500px; padding: 20px 0;">
+		<label style="width: 500px; display: grid; grid-template-columns: 120px auto;">
+			<span style="white-space: nowrap; align-self: center;">Webroot</span>
+			<div style="display: grid; grid-template-columns: 1fr auto auto;">
+				<input type="text" value="" name="webdir" readonly placeholder="No directory selected." style="padding: 4px;"/>
+				<button name="selectwebdirectorybutton" title="Locate folder"><svg class="icon small"><use href="#gico-folder-open"/></svg></button>
+				<button name="resetwebdirectorybutton" title="Reset"><svg class="icon small"><use href="#gico-cached"/></svg></button>
+			</div>
+		</label>
+		<label style="width: 500px; display: grid; grid-template-columns: 120px auto; margin-top: 10px;">
+			<span style="white-space: nowrap; align-self: center;">Port</span>
+			<div style="display: grid; grid-template-columns: 1fr auto auto;">
+				<input type="number" value="" name="webport" placeholder="No port selected." style="padding: 4px;"/>
+				<button name="resetwebport" title="Reset"><svg class="icon small"><use href="#gico-cached"/></svg></button>
+			</div>
+		</label>
+		<label style="width: 500px; display: grid; grid-template-columns: 120px auto; margin-top: 10px;">
+			<span style="white-space: nowrap; align-self: center;"></span>
+			<div>
+				<a href="http://localhost" class="button openInBrowser" id="openlocalweb" title="Open in browser"><svg class="icon small"><use href="#gico-launch"/></svg> Open</a>
+				<button name="startweb" title="Locate folder" style="display: none;"><svg class="icon small"><use href="#gico-play-circle-outline"/></svg> Start</button>
+				<button name="stopweb" title="Locate folder" style="display: none;" class="alert"><svg class="icon small"><use href="#gico-stop"/></svg> Stop</button>
+			</div>
+		</label>
+	</div>
+
+	<h1>WebSocket</h1>
+	<div class="table" style="width: 500px; padding: 20px 0;">
+		<label style="width: 500px; display: grid; grid-template-columns: 120px auto; margin-top: 10px;">
+			<span style="white-space: nowrap; align-self: center;">Port</span>
+			<div style="display: grid; grid-template-columns: 1fr auto auto;">
+				<input type="number" value="" name="wssport" placeholder="No port selected." style="padding: 4px;"/>
+				<button name="resetwssport" title="Reset"><svg class="icon small"><use href="#gico-cached"/></svg></button>
+			</div>
+		</label>
+		<label style="width: 500px; display: grid; grid-template-columns: 120px auto; margin-top: 10px;">
+			<span style="white-space: nowrap; align-self: center;">Connections</span>
+			<div style="display: grid; grid-template-columns: 1fr auto auto;">
+				<input type="number" value="0" name="wsscount" placeholder="No connections." readonly style="padding: 4px;"/>
+			</div>
+		</label>
+		<label style="width: 500px; display: grid; grid-template-columns: 120px auto; margin-top: 10px;">
+			<span style="white-space: nowrap; align-self: center;"></span>
+			<div>
+				<button name="startwss" title="Locate folder" style="display: non2e;"><svg class="icon small"><use href="#gico-play-circle-outline"/></svg> Start</button>
+				<button name="stopwss" title="Locate folder" style="display: no2ne;" class="alert"><svg class="icon small"><use href="#gico-stop"/></svg> Stop</button>
+			</div>
+		</label>
+	</div>
+</main>

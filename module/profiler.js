@@ -145,9 +145,9 @@ exports.checkEvent = (data) => {
 					name: village,
 				};
 			}
-		}
-		if (data.live === true) {
-			exports.event.emit('profile', 'village', {char: data.char, data: chars[data.char].village});
+			if (data.live === true) {
+				exports.event.emit('profile', 'village', {char: data.char, data: chars[data.char].village});
+			}
 		}
 	}
 };

@@ -22,7 +22,10 @@ exports.screenshotDirs = [];
 
 const init = (result) => {
 	for (const dir in watchers) {
-		watchers[dir].watcher.close();
+		// If a watcher limit is reached, the watcher is never attached, so check it first.
+		if (watchers[dir].watcher !== undefined) {
+			watchers[dir].watcher.close();
+		}
 	}
 	watchers = {};
 	logfiles = {};
@@ -388,6 +391,10 @@ const loadDumpFiles = (wurmdirs) => {
 };
 
 const loadLogs = (wurmdirs) => {
+	exports.event.emit('working', 'parsing', {
+		type: 'start',
+		date: new Date(),
+	});
 	let first = true;
 	for (const wurmdir of wurmdirs) {
 		if (wurmdir === undefined) {
@@ -424,6 +431,11 @@ const loadLogs = (wurmdirs) => {
 						if (fileinfo[2] !== 'txt') {
 							return;
 						}
+						exports.event.emit('working', 'parsing', {
+							type: 'file',
+							file: wurmdir + 'players/' + char + '/logs/' + file,
+							date: new Date(),
+						});
 						loadLog(char, wurmdir + 'players/' + char + '/logs/' + file, fileinfo[0]);
 					});
 					if (fs.existsSync(wurmdir + 'players/' + char + '/screenshots/')) {
@@ -434,4 +446,8 @@ const loadLogs = (wurmdirs) => {
 		}
 		first = false;
 	}
+	exports.event.emit('working', 'parsing', {
+		type: 'finish',
+		date: new Date(),
+	});
 };
