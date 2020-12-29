@@ -250,7 +250,15 @@ parser.on('message', (data) => {
 		exports.screenshotsDirs = data.data;
 	}
 	else if (data.name === 'getData') {
-		ws.send('response', data.instance, data.message, data.data);
+		if (data.instance === 'app') {
+			win.webContents.send('wurmnode', {
+				event: 'response',
+				data: data,
+			});
+		}
+		else {
+			ws.send('response', data.instance, data.message, data.data);
+		}
 	}
 	else if (data.name === 'parsing') {
 		isParsing = data.message;
@@ -413,6 +421,12 @@ ws.event.on('message', (data, instance) => {
 	else {
 		console.log(message);
 	}
+});
+ipcMain.on('getCharacters', (event, args) => {
+	parser.postMessage({call: 'getCharacters', instance: 'app', message: null});
+});
+ipcMain.on('getChar', (event, args) => {
+	parser.postMessage({call: 'getChar', char: args, instance: 'app', message: null});
 });
 ipcMain.on('startWss', (event, args) => {
 	exports.setStorage(`wssstatus`, 'start');

@@ -1,0 +1,42 @@
+.gameicon {
+	height: 64px;
+	width: 64px;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+.gameicon.hammer {
+	background: url(../gfx/wurm/tools.png) -128px -64px;
+	background-size: 1280px 768px;
+}
+.gameicon.chisel {
+	background: url(../gfx/wurm/tools.png) 0px -64px;
+	background-size: 1280px 768px;
+}
+.gameicon.carving-knife {
+	background: url(../gfx/wurm/tools.png) 0px -64px;
+	background-size: 1280px 768px;
+}
+.gameicon.file {
+	background: url(../gfx/wurm/tools.png) -576px -64px;
+	background-size: 1280px 768px;
+}
+.gameicon.mallet {
+	background: url(../gfx/wurm/tools.png) -64px -64px;
+	background-size: 1280px 768px;
+}
+.gameicon.pelt {
+	background: url(../gfx/wurm/resource.png) -128px -384px;
+	background-size: 1280px 768px;
+}
+.gameicon.log {
+	background: url(../gfx/wurm/resource.png) -384px -384px;
+	background-size: 1280px 768px;
+}
+.gameicon.stone-shards {
+	background: url(../gfx/wurm/resource.png) -640px -384px;
+	background-size: 1280px 768px;
+}
+
+.itemname:first-letter {
+	text-transform: capitalize;
+}
