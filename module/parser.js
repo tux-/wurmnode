@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const EventEmitter = require('events');
 const profiler = require('./profiler.js');
 const EOL = require('os').EOL;
@@ -287,7 +288,7 @@ const mainLoop = () => {
 };
 
 const loadLog = (char, file, type, live = false) => {
-	let data = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+	let data = fs.readFileSync(file, {encoding: 'utf8', flag: 'r'});
 	data = data.substr(0, data.lastIndexOf(EOL));
 	const size = Buffer.byteLength(data, 'utf8') + EOL.length;
 	const lines = data.split(EOL);
@@ -320,7 +321,7 @@ const followLogs = () => {
 					logfiles[filename].state = 'changed';
 				}
 				else {
-					const fileinfo = filename.split('.');
+					const fileinfo = path.basename(filename).split('.');
 					if (fileinfo[2] !== 'txt') {
 						return;
 					}
