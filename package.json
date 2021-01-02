@@ -39,6 +39,7 @@
 		"electron-builder": "^22.9.1"
 	},
 	"dependencies": {
+		"chokidar": "^3.4.3",
 		"electron-settings": "^4.0.2",
 		"node-fetch": "^2.6.1",
 		"ws": "^7.4.1"

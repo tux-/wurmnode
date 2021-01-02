@@ -419,3 +419,10 @@ button:disabled:focus,
 	background-color: var(--bg);
 	cursor: pointer;
 }
+
+.fadeout:not(.change) {
+	transition: color 15s ease-out 5s;
+}
+.fadeout.change {
+	color: #2ce62c;
+}

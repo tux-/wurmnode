@@ -12,6 +12,9 @@ gimle(window).on('wurmnode.page', event => {
 			document.querySelector('#wurmdir').value = event.detail.dir;
 		}
 	}
+	else if (event.detail.event === 'getWatchPolling') {
+		document.querySelector('#polling').checked = event.detail.polling;
+	}
 	else if (event.detail.event === 'getBackupDirs') {
 		const backupstable = document.querySelector('#backupstable');
 		backupstable.textContent = '';
@@ -35,11 +38,17 @@ gimle(window).on('wurmnode.page', event => {
 
 window.app.send('getWurmDir');
 window.app.send('getBackupDirs');
+window.app.send('getWatchPolling');
 
 
 document.querySelector('#selectwwurmdirectorybutton').addEventListener('click', e => {
 	e.preventDefault();
 	window.app.send('selectWurmDirectory');
+	return false;
+});
+document.querySelector('#polling').addEventListener('change', function (e) {
+	e.preventDefault();
+	window.app.send('setWatchPolling', this.checked);
 	return false;
 });
 document.querySelector('#addbackupdirectorybutton').addEventListener('click', e => {

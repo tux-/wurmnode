@@ -195,16 +195,6 @@ ipcMain.on('isParsing', (event, index) => {
 	});
 });
 
-exports.getChar = (name) => {
-	if (name === undefined) {
-		return profiler.getCharacters();
-	}
-	return profiler.getCharacterData(name);
-};
-
-exports.uiLoaded = () => {
-};
-
 Promise.all([fetchedLatest]).then(() => {
 	win.webContents.send('wurmnode', {
 		event: 'ready',
@@ -241,9 +231,10 @@ parser.on('message', (data) => {
 	else if (data.name === 'getWurmDirs') {
 		const wurmdirPromise = appConfig.get(`appSave.wurmdir`);
 		const wurmdirsPromise = appConfig.get(`appSave.wurmdirs`);
+		const watchPolling = appConfig.getSync(`appSave.watchPolling`);
 
 		Promise.all([wurmdirPromise, wurmdirsPromise]).then((result) => {
-			parser.postMessage({call: 'realParse', dirs: result, param: data.param});
+			parser.postMessage({call: 'realParse', dirs: result, watchPolling: watchPolling, param: data.param});
 		});
 	}
 	else if (data.name === 'screenshotDirs') {
@@ -274,7 +265,7 @@ parser.on('message', (data) => {
 			event: 'error',
 			data: data,
 		});
-		console.log(data);
+		console.log('errordata', data);
 		// throw data;
 	}
 });
@@ -365,6 +356,18 @@ ipcMain.on('getWurmDir', (event, args) => {
 		});
 	});
 });
+ipcMain.on('getWatchPolling', (event, args) => {
+	exports.getStorage('watchPolling').then((r) => {
+		win.webContents.send('wurmnode', {
+			event: 'getWatchPolling',
+			polling: (r === true ? true : false),
+		});
+	});
+});
+ipcMain.on('setWatchPolling', (event, args) => {
+	exports.setStorageSync('watchPolling', args);
+	parser.postMessage({call: 'parse', param: 'watchPollingUpdated'});
+});
 
 ipcMain.on('getBackupDirs', (event, args) => {
 	exports.getStorage('wurmdirs').then((r) => {
@@ -419,7 +422,7 @@ ws.event.on('message', (data, instance) => {
 		parser.postMessage({call: 'getChar', char: message.name, instance: instance.id, message: message});
 	}
 	else {
-		console.log(message);
+		console.log('message:', message);
 	}
 });
 ipcMain.on('getCharacters', (event, args) => {

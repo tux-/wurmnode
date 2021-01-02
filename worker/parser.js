@@ -4,6 +4,16 @@ const {parentPort} = require('worker_threads');
 const parser = require('../module/parser.js');
 const profiler = require('../module/profiler.js');
 
+const sendError = (e) => {
+	const error = {
+		message: e.message,
+		name: e.name,
+		debug: e,
+		data: JSON.parse(JSON.stringify(e)),
+	};
+	parentPort.postMessage({name: 'error', message: error});
+};
+
 parentPort.on('message', (data) => {
 	if (data.call === 'parse') {
 		parentPort.postMessage({name: 'getWurmDirs', param: data.param});
@@ -11,17 +21,10 @@ parentPort.on('message', (data) => {
 	else if (data.call === 'realParse') {
 		try {
 			parentPort.postMessage({name: 'parsing', message: true});
-			parser.parse(data.dirs, data.param);
+			parser.parse(data.dirs, data.watchPolling, data.param);
 		}
 		catch (e) {
-			const error = {
-				message: e.message,
-				name: e.name,
-				debug: e,
-				data: JSON.parse(JSON.stringify(e)),
-			};
-			parentPort.postMessage({name: 'error', message: error});
-			console.log(error);
+			sendError(error);
 		};
 		parentPort.postMessage({name: 'parsing', message: false});
 	}
@@ -33,6 +36,9 @@ parentPort.on('message', (data) => {
 	}
 });
 
+parser.event.on('error', (error) => {
+	sendError(error);
+});
 parser.event.on('event', (type, data) => {
 	parentPort.postMessage({name: 'event', type: type, data: data});
 });

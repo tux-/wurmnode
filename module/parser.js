@@ -4,16 +4,19 @@ const fs = require('fs');
 const EventEmitter = require('events');
 const profiler = require('./profiler.js');
 const EOL = require('os').EOL;
+const chokidar = require('chokidar');
 
 const now = new Date();
 const msinday = 60 * 60 * 24 * 1000;
 
 let watchers = {};
 let logfiles = {};
+let usePolling = false;
 
 exports.event = new EventEmitter();
 
-exports.parse = (result, returnEvent) => {
+exports.parse = (result, watchPolling, returnEvent) => {
+	usePolling = watchPolling;
 	init(result);
 	exports.event.emit('parsed', returnEvent);
 };
@@ -245,7 +248,7 @@ const handleLogEvent = (file) => {
 		let data = buffer.slice(0, bytes).toString();
 		fs.close(fd, (err) => {
 			if (err) {
-				console.log(err);
+				console.log('err', err);
 			}
 		});
 
@@ -265,7 +268,7 @@ const handleLogEvent = (file) => {
 	else {
 		fs.close(fd, (err) => {
 			if (err) {
-				console.log(err);
+				console.log('err', err);
 			}
 		});
 		logfiles[file].state = 'pending';
@@ -307,21 +310,21 @@ const followLogs = () => {
 	for (const dir in watchers) {
 		console.log('Watching: ' + dir);
 
-		watchers[dir].watcher = fs.watch(dir, {
-		}, (eventType, filename) => {
-			if (eventType !== 'change') {
-				return;
-			}
+		watchers[dir].watcher = chokidar.watch(dir, {
+			persistent: true,
+			usePolling: usePolling,
+		});
+		watchers[dir].watcher.on('change', (filename) => {
 			if (watchers[dir].type === 'log') {
-				if (logfiles[dir + filename] !== undefined) {
-					logfiles[dir + filename].state = 'changed';
+				if (logfiles[filename] !== undefined) {
+					logfiles[filename].state = 'changed';
 				}
 				else {
 					const fileinfo = filename.split('.');
 					if (fileinfo[2] !== 'txt') {
 						return;
 					}
-					logfiles[dir + filename] = {
+					logfiles[filename] = {
 						size: 0,
 						char: watchers[dir].char,
 						type: fileinfo[0],
@@ -338,6 +341,9 @@ const followLogs = () => {
 					filename: filename,
 				});
 			}
+		});
+		watchers[dir].watcher.on('error', (error) => {
+			exports.event.emit('error', error);
 		});
 	}
 };

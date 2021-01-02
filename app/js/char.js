@@ -36,23 +36,38 @@ gimle(window).on('wurmnode.page', event => {
 	}
 	else if ((event.detail.event === 'profile') && (event.detail.data.data.char === gimle.hash.deep[0].qs)) {
 		if (event.detail.data.type === 'village') {
+			const target = document.querySelector('#village');
+			target.parentElement.classList.add('change');
 			if (event.detail.data.data.data === undefined) {
-				document.querySelector('#village').textContent = '';
+				target.textContent = '';
 			}
 			else {
-				document.querySelector('#village').textContent = event.detail.data.data.data.name + ', since ' + event.detail.data.data.data.date.toLocaleString();
+				target.textContent = event.detail.data.data.data.name + ', since ' + event.detail.data.data.data.date.toLocaleString();
 			}
+			setTimeout(() => {
+				target.parentElement.classList.remove('change');
+			}, 100);
 		}
 		else if (event.detail.data.type === 'server') {
-			document.querySelector('#server').textContent = event.detail.data.data.data.name + ', since ' + event.detail.data.data.data.date.toLocaleString();
+			const target = document.querySelector('#server');
+			target.parentElement.classList.add('change');
+			target.textContent = event.detail.data.data.data.name + ', since ' + event.detail.data.data.data.date.toLocaleString();
+			setTimeout(() => {
+				target.parentElement.classList.remove('change');
+			}, 100);
 		}
 		else if (event.detail.data.type === 'meditation') {
-			document.querySelector('#meditation').textContent = '';
+			const target = document.querySelector('#meditation');
+			target.parentElement.classList.add('change');
+			target.textContent = '';
 			for (const utime in event.detail.data.data.data) {
 				let node = document.createElement('div');
 				node.innerHTML = event.detail.data.data.data[utime].date.toLocaleString();
-				document.querySelector('#meditation').prepend(node);
+				target.prepend(node);
 			}
+			setTimeout(() => {
+				target.parentElement.classList.remove('change');
+			}, 100);
 		}
 		else {
 			console.log(event.detail.data);
@@ -61,7 +76,14 @@ gimle(window).on('wurmnode.page', event => {
 	else if ((event.detail.event === 'event') && (event.detail.data.type === 'skill')) {
 		const target = document.querySelector('[data-skill="' + event.detail.data.data.name + '"]');
 		if (target !== null) {
+			if (event.detail.data.data.name === 'Woodcutting') {
+				console.log(target.parentElement);
+			}
+			target.parentElement.classList.add('change');
 			target.textContent = event.detail.data.data.to;
+			setTimeout(() => {
+				target.parentElement.classList.remove('change');
+			}, 100);
 		}
 		else  {
 			console.log(event.detail.data);
