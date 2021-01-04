@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>WurmNode</title>
+
+		<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';"/>
+
+		<link rel="stylesheet" href="./css/base.css">
+		<link rel="stylesheet" href="./css/app.css">
+		<link rel="stylesheet" href="./css/fonts.css">
+		<link rel="stylesheet" href="./css/framework.css">
+		<link rel="stylesheet" href="./css/wurm.css">
+
+		<script src="./js/gimle.js"></script>
+		<script src="./js/groundimp-base.js"></script>
+
+		<style>
+			html, body {
+				width: 291px;
+				height: 55px;
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				-webkit-user-select: none;
+				-webkit-app-region: drag;
+				background: url('gfx/groundimp.png') no-repeat;
+				color: #fff;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="imp" style="display: grid; grid-template-columns: 53px 1fr; gap: 15px; width: 291px; height: 55px;">
+			<div class="gameicon" style="margin: 11px;"></div>
+			<div style="display: grid; grid-template-rows: 33px 18px; margin-top: 1px;">
+				<div id="action" style="font-size: 14px; color: #e4d59b; align-self: center;" class="itemname"></div>
+				<div id="quality" style="font-size: 10px; align-self: center;"></div>
+			</div>
+		</div>
+	</body>
+</html>

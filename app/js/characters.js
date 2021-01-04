@@ -12,7 +12,6 @@ gimle(window).on('wurmnode.page', event => {
 			node.innerHTML = '<a href="#char?' + char + '">' + char + '</a>';
 			target.appendChild(node);
 		}
-		console.log(chars);
 	}
 });
 

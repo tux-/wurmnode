@@ -30,7 +30,8 @@ gimle(window).on('wurmnode.page', event => {
 				target.textContent = info.skills[skill].value;
 			}
 			else  {
-				console.log(skill, info.skills[skill]);
+				// Easter skills
+				// console.log(skill, info.skills[skill]);
 			}
 		}
 	}

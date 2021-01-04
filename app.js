@@ -16,6 +16,8 @@ let ENV_MODE = 'production';
 let win = null;
 let isParsing = false;
 
+const wins = {};
+
 if (process.argv[2] === '--dev') {
 	ENV_MODE = 'dev';
 }
@@ -76,9 +78,37 @@ const createWindow = () => {
 		}
 
 		win.on('closed', () => {
+			for (const w in wins) {
+				wins[w].close();
+				wins[w] = undefined;
+			}
 			win = null;
 		});
 	});
+};
+
+const toggleWin = (load, width, height) => {
+	if (wins[load] === undefined) {
+		const winProp = {
+			width: width,
+			height: height,
+			webPreferences: {
+				contextIsolation: true,
+				preload: path.join(__dirname, 'app/js/preload.js'),
+			},
+			icon: path.join(__dirname, '/app/www/favicon.png'),
+			frame: false,
+		};
+
+		wins[load] = new BrowserWindow(winProp);
+		wins[load].setAlwaysOnTop(true, 'screen');
+		wins[load].setResizable(false);
+		wins[load].loadFile(load);
+	}
+	else {
+		wins[load].close();
+		wins[load] = undefined;
+	}
 };
 
 const menutemplate = [
@@ -284,6 +314,10 @@ app.on('activate', () => {
 	if (win === null) {
 		createWindow();
 	}
+});
+
+ipcMain.on('togglegroundimperwindow', (event, args) => {
+	toggleWin('app/groundimp.html', 291, 55);
 });
 /* === General === */
 
