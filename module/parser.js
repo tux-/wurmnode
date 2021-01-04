@@ -65,6 +65,10 @@ const parseChatLine = (char, type, date, text, live) => {
 const parseSkillLine = (char, date, line, live) => {
 	let data = null;
 	let inc = true;
+	if (line.includes('affinity')) {
+		console.log('parseSkillLine', char, date, line);
+		return;
+	}
 	if (line.includes(' increased ')) {
 		data = line.split(' increased ');
 	}
@@ -134,6 +138,9 @@ const handleLine = (char, type, date, text, live) => {
 	}
 	else if (type === '_Skills') {
 		const data = parseSkillLine(char, date, text, live);
+		if (data === undefined) {
+			return;
+		}
 		data.char = char;
 		data.date = date;
 		if (live) {

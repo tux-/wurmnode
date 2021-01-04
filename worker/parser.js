@@ -24,7 +24,7 @@ parentPort.on('message', (data) => {
 			parser.parse(data.dirs, data.watchPolling, data.param);
 		}
 		catch (e) {
-			sendError(error);
+			sendError(e);
 		};
 		parentPort.postMessage({name: 'parsing', message: false});
 	}
