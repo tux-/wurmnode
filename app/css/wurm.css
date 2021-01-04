@@ -4,7 +4,7 @@
 	image-rendering: pixelated;
 	image-rendering: crisp-edges;
 }
-.gameicon.big {
+.gameicon[data-size="big"] {
 	height: 64px;
 	width: 64px;
 }
@@ -13,7 +13,7 @@
 	background: url(../gfx/wurm/tools.png) -64px -32px;
 	background-size: 640px 384px;
 }
-.gameicon.big.hammer {
+.gameicon.hammer[data-size="big"] {
 	background: url(../gfx/wurm/tools.png) -128px -64px;
 	background-size: 1280px 768px;
 }
@@ -22,7 +22,7 @@
 	background: url(../gfx/wurm/tools.png) 0px -32px;
 	background-size: 640px 384px;
 }
-.gameicon.big.chisel {
+.gameicon.chisel[data-size="big"] {
 	background: url(../gfx/wurm/tools.png) 0px -64px;
 	background-size: 1280px 768px;
 }
@@ -31,7 +31,7 @@
 	background: url(../gfx/wurm/tools.png) 0px -32px;
 	background-size: 640px 384px;
 }
-.gameicon.big.carving-knife {
+.gameicon.carving-knife[data-size="big"] {
 	background: url(../gfx/wurm/tools.png) 0px -64px;
 	background-size: 1280px 768px;
 }
@@ -40,7 +40,7 @@
 	background: url(../gfx/wurm/tools.png) -288px -32px;
 	background-size: 640px 384px;
 }
-.gameicon.big.file {
+.gameicon.file[data-size="big"] {
 	background: url(../gfx/wurm/tools.png) -576px -64px;
 	background-size: 1280px 768px;
 }
@@ -49,7 +49,7 @@
 	background: url(../gfx/wurm/tools.png) -32px -32px;
 	background-size: 640px 384px;
 }
-.gameicon.big.mallet {
+.gameicon.mallet[data-size="big"] {
 	background: url(../gfx/wurm/tools.png) -64px -64px;
 	background-size: 1280px 768px;
 }
@@ -58,7 +58,7 @@
 	background: url(../gfx/wurm/resource.png) -64px -192px;
 	background-size: 640px 384px;
 }
-.gameicon.big.pelt {
+.gameicon.pelt[data-size="big"] {
 	background: url(../gfx/wurm/resource.png) -128px -384px;
 	background-size: 1280px 768px;
 }
@@ -67,7 +67,7 @@
 	background: url(../gfx/wurm/resource.png) -192px -192px;
 	background-size: 640px 384px;
 }
-.gameicon.big.log {
+.gameicon.log[data-size="big"] {
 	background: url(../gfx/wurm/resource.png) -384px -384px;
 	background-size: 1280px 768px;
 }
@@ -76,7 +76,7 @@
 	background: url(../gfx/wurm/resource.png) -320px -192px;
 	background-size: 640px 384px;
 }
-.gameicon.big.stone-shards {
+.gameicon.stone-shards[data-size="big"] {
 	background: url(../gfx/wurm/resource.png) -640px -384px;
 	background-size: 1280px 768px;
 }

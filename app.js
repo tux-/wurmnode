@@ -80,7 +80,7 @@ const createWindow = () => {
 		win.on('closed', () => {
 			for (const w in wins) {
 				wins[w].close();
-				wins[w] = undefined;
+				wins[w] = null;
 			}
 			win = null;
 		});
@@ -88,7 +88,7 @@ const createWindow = () => {
 };
 
 const toggleWin = (load, width, height) => {
-	if (wins[load] === undefined) {
+	if ((wins[load] === undefined) || (wins[load] === null)) {
 		const winProp = {
 			width: width,
 			height: height,
@@ -104,10 +104,12 @@ const toggleWin = (load, width, height) => {
 		wins[load].setAlwaysOnTop(true, 'screen');
 		wins[load].setResizable(false);
 		wins[load].loadFile(load);
+		wins[load].on('closed', () => {
+			wins[load] = null;
+		});
 	}
 	else {
 		wins[load].close();
-		wins[load] = undefined;
 	}
 };
 
@@ -247,6 +249,14 @@ parser.on('message', (data) => {
 			event: 'event',
 			data: data,
 		});
+		for (const w in wins) {
+			if (wins[w] !== null) {
+				wins[w].webContents.send('wurmnode', {
+					event: 'event',
+					data: data,
+				});
+			}
+		}
 		app.emit('event', data.type, data.data);
 		ws.broadcast('event', data.type, data.data);
 	}
