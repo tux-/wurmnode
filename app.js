@@ -205,6 +205,9 @@ exports.getVersion = () => {
 /* === Version check === */
 
 const publishEvent = (event, data) => {
+	if (win === null) {
+		return;
+	}
 	win.webContents.send('wurmnode', {
 		event: event,
 		data: data,
