@@ -23,6 +23,11 @@ gimle(window).on('wurmnode.page', event => {
 			node.innerHTML = info.meditation[utime].date.toLocaleString();
 			document.querySelector('#meditation').prepend(node);
 		}
+		for (const utime in info.sermon) {
+			let node = document.createElement('div');
+			node.innerHTML = info.sermon[utime].date.toLocaleString();
+			document.querySelector('#sermon').prepend(node);
+		}
 
 		for (const skill in info.skills) {
 			const target = document.querySelector('[data-skill="' + skill + '"]');
@@ -59,6 +64,19 @@ gimle(window).on('wurmnode.page', event => {
 		}
 		else if (event.detail.data.type === 'meditation') {
 			const target = document.querySelector('#meditation');
+			target.parentElement.classList.add('change');
+			target.textContent = '';
+			for (const utime in event.detail.data.data.data) {
+				let node = document.createElement('div');
+				node.innerHTML = event.detail.data.data.data[utime].date.toLocaleString();
+				target.prepend(node);
+			}
+			setTimeout(() => {
+				target.parentElement.classList.remove('change');
+			}, 100);
+		}
+		else if (event.detail.data.type === 'sermon') {
+			const target = document.querySelector('#sermon');
 			target.parentElement.classList.add('change');
 			target.textContent = '';
 			for (const utime in event.detail.data.data.data) {

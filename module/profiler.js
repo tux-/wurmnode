@@ -41,6 +41,13 @@ exports.checkEvent = (data) => {
 				date: data.date,
 			};
 		}
+		if (chars[data.char].serverlog === undefined) {
+			chars[data.char].serverlog = [];
+		}
+		chars[data.char].serverlog.push({
+			name: servername,
+			date: data.date,
+		});
 		if (data.live === true) {
 			exports.event.emit('profile', 'server', {char: data.char, data: chars[data.char].server});
 		}
@@ -126,6 +133,13 @@ exports.checkEvent = (data) => {
 		if (chars[data.char].village !== undefined) {
 			delete chars[data.char].village;
 		}
+		if (chars[data.char].villagelog === undefined) {
+			chars[data.char].villagelog = [];
+		}
+		chars[data.char].villagelog.push({
+			name: null,
+			date: data.date,
+		});
 		if (data.live === true) {
 			exports.event.emit('profile', 'village', {char: data.char, data: chars[data.char].village});
 		}
@@ -145,9 +159,31 @@ exports.checkEvent = (data) => {
 					name: village,
 				};
 			}
+			if (chars[data.char].villagelog === undefined) {
+				chars[data.char].villagelog = [];
+			}
+			chars[data.char].villagelog.push({
+				name: village,
+				date: data.date,
+			});
 			if (data.live === true) {
 				exports.event.emit('profile', 'village', {char: data.char, data: chars[data.char].village});
 			}
+		}
+	}
+	else if (data.text.startsWith('You finish this sermon by yet again praising ')) {
+		if (data.date.getTime() > twodaysago.getTime()) {
+			if (chars[data.char].sermon === undefined) {
+				chars[data.char].sermon = {};
+			}
+			chars[data.char].sermon[data.date.getTime()] = {
+				text: data.text,
+				date: data.date,
+			};
+			chars[data.char].sermon = sort(chars[data.char].sermon);
+		}
+		if (data.live === true) {
+			exports.event.emit('profile', 'sermon', {char: data.char, data: chars[data.char].sermon});
 		}
 	}
 };
@@ -180,10 +216,14 @@ exports.loadDump = (dumpinfo) => {
 				group = skill;
 				continue;
 			}
-			const value = parseFloat(data[1].trim().split(' ')[0]);
+			const values = data[1].trim().split(' ');
+			const value = parseFloat(values[0]);
+			const affinities = parseInt(values[2]);
+
 			skills[skill.trim()] = {
 				name: skill.trim(),
 				value: value,
+				affinities: (isNaN(affinities) ? 0 : affinities),
 				date: dumpinfo.date,
 			};
 		}

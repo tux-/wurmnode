@@ -204,6 +204,27 @@ exports.getVersion = () => {
 };
 /* === Version check === */
 
+const publishEvent = (event, data) => {
+	win.webContents.send('wurmnode', {
+		event: event,
+		data: data,
+	});
+	for (const w in wins) {
+		if (wins[w] !== null) {
+			wins[w].webContents.send('wurmnode', {
+				event: event,
+				data: data,
+			});
+		}
+	}
+	if (sitews !== null) {
+		sitews.send(JSON.stringify({
+			event: event,
+			data: data,
+		}));
+	}
+	app.emit(event, data.type, data.data);
+};
 
 /* --- General --- */
 const parser = new Worker(__dirname + '/worker/parser.js');
@@ -245,28 +266,10 @@ parser.on('message', (data) => {
 		app.emit(data.type);
 	}
 	else if (data.name === 'event') {
-		win.webContents.send('wurmnode', {
-			event: 'event',
-			data: data,
-		});
-		for (const w in wins) {
-			if (wins[w] !== null) {
-				wins[w].webContents.send('wurmnode', {
-					event: 'event',
-					data: data,
-				});
-			}
-		}
-		app.emit('event', data.type, data.data);
-		ws.broadcast('event', data.type, data.data);
+		publishEvent('event', data);
 	}
 	else if (data.name === 'profile') {
-		win.webContents.send('wurmnode', {
-			event: 'profile',
-			data: data,
-		});
-		app.emit('profile', data.type, data.data);
-		ws.broadcast('profile', data.type, data.data);
+		publishEvent('profile', data);
 	}
 	else if (data.name === 'getWurmDirs') {
 		const wurmdirPromise = appConfig.get(`appSave.wurmdir`);
@@ -458,15 +461,25 @@ ws.event.on('count', (count) => {
 	app.emit('service', 'ws', 'count', count);
 });
 ws.event.on('message', (data, instance) => {
-	const message = JSON.parse(data);
-	if (message.get === 'chars') {
-		parser.postMessage({call: 'getCharacters', instance: instance.id, message: message});
+	try {
+		if (typeof data === 'object') {
+			data = JSON.stringify(data);
+		}
+		const message = JSON.parse(data);
+		if (message.get === 'chars') {
+			parser.postMessage({call: 'getCharacters', instance: instance.id, message: message});
+		}
+		else if ((message.get === 'char') && (message.name !== undefined)) {
+			parser.postMessage({call: 'getChar', char: message.name, instance: instance.id, message: message});
+		}
+		else {
+			console.log('message:', message);
+		}
 	}
-	else if ((message.get === 'char') && (message.name !== undefined)) {
-		parser.postMessage({call: 'getChar', char: message.name, instance: instance.id, message: message});
-	}
-	else {
-		console.log('message:', message);
+	catch (e) {
+		console.log(e);
+		console.log(typeof data);
+		console.log(data);
 	}
 });
 ipcMain.on('getCharacters', (event, args) => {

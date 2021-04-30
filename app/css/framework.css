@@ -87,7 +87,7 @@ body {
 }
 
 a, span.a {
-	color:  var(--a);
+	color: var(--a);
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -112,13 +112,20 @@ a:hover, span.a:hover {
 	width: 100%;
 	height: 100%;
 	grid-template-columns: 240px auto;
-	grid-template-rows: auto;
+	grid-template-rows: auto 24px;
 	grid-template-areas:
 		"framework-nav framework-canvas"
 	;
 }
 body.mini-menu #framework {
 	grid-template-columns: 40px auto;
+}
+
+#framework-status {
+	border-top: 1px solid var(--border-color);
+	grid-column: span 2;
+	text-align: right;
+	padding: 3px 12px;
 }
 
 #framework-panel-items {

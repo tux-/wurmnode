@@ -19,6 +19,59 @@ exports.event = new EventEmitter();
 exports.parse = (result, watchPolling, returnEvent) => {
 	usePolling = watchPolling;
 	init(result);
+	for (const char of profiler.getCharacters()) {
+		const charData = profiler.getCharacterData(char);
+		charData.serverlog.sort((a, b) => {
+			if (a.date < b.date) {
+				return -1;
+			}
+			if (a.date > b.date) {
+				return 1;
+			}
+			return 0;
+		});
+		charData.villagelog.sort((a, b) => {
+			if (a.date < b.date) {
+				return -1;
+			}
+			if (a.date > b.date) {
+				return 1;
+			}
+			return 0;
+		});
+		for (const server in charData.serverlog) {
+			const gt = new Date(charData.serverlog[server].date).getTime();
+			let lt = new Date().getTime();
+			if (charData.serverlog[parseInt(server) + 1] !== undefined) {
+				lt = new Date(charData.serverlog[parseInt(server) + 1].date).getTime();
+			}
+			for (const village in charData.villagelog) {
+				if (charData.locationlog === undefined) {
+					charData.locationlog = [{
+						server: charData.serverlog[server].name,
+						village: charData.villagelog[village].name,
+						date: charData.villagelog[village].date,
+					}];
+					continue;
+				}
+				const last = charData.locationlog[charData.locationlog.length -1];
+				if ((last.server === charData.serverlog[server].name) && (last.village === charData.villagelog[village].name)) {
+					continue;
+				}
+				const date = new Date(charData.villagelog[village].date);
+				if ((date.getTime() > gt) && (date.getTime() < lt)) {
+					charData.locationlog.push({
+						server: charData.serverlog[server].name,
+						village: charData.villagelog[village].name,
+						date: charData.villagelog[village].date,
+					});
+				}
+			}
+		}
+		delete charData.serverlog;
+		delete charData.villagelog;
+	}
+
 	exports.event.emit('parsed', returnEvent);
 };
 
@@ -212,6 +265,7 @@ const handleLine = (char, type, date, text, live) => {
 				exports.event.emit('event', 'chat', data);
 			}
 		}
+
 		return data;
 	}
 };
@@ -298,7 +352,6 @@ const loadLog = (char, file, type, live = false) => {
 	let data = fs.readFileSync(file, {encoding: 'utf8', flag: 'r'});
 	data = data.substr(0, data.lastIndexOf(EOL));
 	const size = Buffer.byteLength(data, 'utf8') + EOL.length;
-	const lines = data.split(EOL);
 
 	logfiles[file] = {
 		size: size,
@@ -309,6 +362,7 @@ const loadLog = (char, file, type, live = false) => {
 		time: 0,
 	};
 
+	const lines = data.split(EOL);
 	for (const line of lines) {
 		loadLine(file, line, live);
 	}
@@ -323,6 +377,27 @@ const followLogs = () => {
 			usePolling: usePolling,
 		});
 		watchers[dir].watcher.on('change', (filename) => {
+			if (watchers[dir].type === 'log') {
+				if (logfiles[filename] !== undefined) {
+					logfiles[filename].state = 'changed';
+				}
+				else {
+					const fileinfo = path.basename(filename).split('.');
+					if (fileinfo[2] !== 'txt') {
+						return;
+					}
+					logfiles[filename] = {
+						size: 0,
+						char: watchers[dir].char,
+						type: fileinfo[0],
+						state: 'changed',
+						date: null,
+						time: 0,
+					};
+				}
+			}
+		});
+		watchers[dir].watcher.on('add', (filename) => {
 			if (watchers[dir].type === 'log') {
 				if (logfiles[filename] !== undefined) {
 					logfiles[filename].state = 'changed';
