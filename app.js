@@ -217,13 +217,8 @@ const publishEvent = (event, data) => {
 			});
 		}
 	}
-	if (sitews !== null) {
-		sitews.send(JSON.stringify({
-			event: event,
-			data: data,
-		}));
-	}
 	app.emit(event, data.type, data.data);
+	ws.broadcast(event, data.type, data.data);
 };
 
 /* --- General --- */
