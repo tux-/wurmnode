@@ -79,8 +79,10 @@ const createWindow = () => {
 
 		win.on('closed', () => {
 			for (const w in wins) {
-				wins[w].close();
-				wins[w] = null;
+				if (wins[w] !== null) {
+					wins[w].close();
+					wins[w] = null;
+				}
 			}
 			win = null;
 		});
