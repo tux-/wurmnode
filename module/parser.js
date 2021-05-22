@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
 const profiler = require('./profiler.js');
-const EOL = require('os').EOL;
 const chokidar = require('chokidar');
 
 const now = new Date();
@@ -314,9 +313,9 @@ const handleLogEvent = (file) => {
 			}
 		});
 
-		data = data.substr(0, data.lastIndexOf(EOL) + EOL.length);
+		data = data.substr(0, data.lastIndexOf("\n") + 1);
 		logfiles[file].size += Buffer.byteLength(data, 'utf8');
-		const lines = data.substr(0, data.length - EOL.length).split(EOL);
+		const lines = data.substr(0, data.length - 1).split("\n");
 
 		for (const line of lines) {
 			if (line.length > 11) {
@@ -350,8 +349,8 @@ const mainLoop = () => {
 
 const loadLog = (char, file, type, live = false) => {
 	let data = fs.readFileSync(file, {encoding: 'utf8', flag: 'r'});
-	data = data.substr(0, data.lastIndexOf(EOL));
-	const size = Buffer.byteLength(data, 'utf8') + EOL.length;
+	data = data.substr(0, data.lastIndexOf("\n"));
+	const size = Buffer.byteLength(data, 'utf8') + 1;
 
 	logfiles[file] = {
 		size: size,
@@ -362,7 +361,7 @@ const loadLog = (char, file, type, live = false) => {
 		time: 0,
 	};
 
-	const lines = data.split(EOL);
+	const lines = data.split("\n");
 	for (const line of lines) {
 		loadLine(file, line, live);
 	}
@@ -375,6 +374,7 @@ const followLogs = () => {
 		watchers[dir].watcher = chokidar.watch(dir, {
 			persistent: true,
 			usePolling: usePolling,
+			ignoreInitial: true,
 		});
 		watchers[dir].watcher.on('change', (filename) => {
 			if (watchers[dir].type === 'log') {

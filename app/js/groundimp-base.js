@@ -1,11 +1,9 @@
 'use strict';
 
-window.wurmnode = {
-	groundimp: {
-		last: 'Examine to update.',
-		damage: 0,
-		working: false,
-	},
+window.wurmnode.groundimp = {
+	last: 'Examine to update.',
+	damage: 0,
+	working: false,
 };
 
 gimle(window).on('wurmnode.page', event => {

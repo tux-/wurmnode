@@ -19,8 +19,6 @@ exports.getCharacterData = (name) => {
 	return chars[name];
 };
 
-let inah = false;
-
 exports.checkEvent = (data) => {
 	createChar(data.char);
 
@@ -99,20 +97,6 @@ exports.checkEvent = (data) => {
 				name: data.text.slice(26, -1),
 			};
 		}
-
-		if (data.date.getTime() > twodaysago.getTime()) {
-			if (chars[data.char].pray === undefined) {
-				chars[data.char].pray = {};
-			}
-			chars[data.char].pray[data.date.getTime()] = {
-				text: data.text,
-				date: data.date,
-			};
-			chars[data.char].pray = sort(chars[data.char].pray);
-		}
-		if (data.live === true) {
-			exports.event.emit('profile', 'pray', {char: data.char, data: chars[data.char].pray});
-		}
 	}
 	else if (data.text === 'You finish your meditation.') {
 		if (data.date.getTime() > twodaysago.getTime()) {
@@ -129,9 +113,62 @@ exports.checkEvent = (data) => {
 			exports.event.emit('profile', 'meditation', {char: data.char, data: chars[data.char].meditation});
 		}
 	}
+	else if (data.text === 'You let your love change the area.') {
+		if (chars[data.char].bonus === undefined) {
+			chars[data.char].bonus = {};
+		}
+		if (chars[data.char].bonus.enchant !== undefined) {
+			if (data.date.getTime() > chars[data.char].bonus.enchant.getTime()) {
+				chars[data.char].bonus.enchant = data.date;
+			}
+		}
+		else {
+			chars[data.char].bonus.enchant = data.date;
+		}
+		if (data.live === true) {
+			exports.event.emit('profile', 'bonus', {char: data.char, data: {type: 'enchant', date: chars[data.char].bonus.enchant}});
+		}
+	}
+	else if ((data.text.startsWith('You send ')) && (data.text.endsWith(' a warm thought.'))) {
+		if (chars[data.char].bonus === undefined) {
+			chars[data.char].bonus = {};
+		}
+		if (chars[data.char].bonus.refresh !== undefined) {
+			if (data.date.getTime() > chars[data.char].bonus.refresh.getTime()) {
+				chars[data.char].bonus.refresh = data.date;
+			}
+		}
+		else {
+			chars[data.char].bonus.refresh = data.date;
+		}
+		if (data.live === true) {
+			exports.event.emit('profile', 'bonus', {char: data.char, data: {type: 'refresh', date: chars[data.char].bonus.refresh}});
+		}
+	}
+	else if ((data.text === 'The rock starts to bubble with lava.') || (data.text === 'The lava cools down and turns grey.')) {
+		if (chars[data.char].bonus === undefined) {
+			chars[data.char].bonus = {};
+		}
+		if (chars[data.char].bonus.erupt !== undefined) {
+			if (data.date.getTime() > chars[data.char].bonus.erupt.getTime()) {
+				chars[data.char].bonus.erupt = data.date;
+			}
+		}
+		else {
+			chars[data.char].bonus.erupt = data.date;
+		}
+		if (data.live === true) {
+			exports.event.emit('profile', 'bonus', {char: data.char, data: {type: 'erupt', date: chars[data.char].bonus.erupt}});
+		}
+	}
 	else if ((data.text.startsWith('You leave ')) && (!data.text.startsWith('You leave the '))) {
 		if (chars[data.char].village !== undefined) {
-			delete chars[data.char].village;
+			if (data.date.getTime() > chars[data.char].village.date.getTime()) {
+				chars[data.char].village = {
+					name: null,
+					date: data.date,
+				};
+			}
 		}
 		if (chars[data.char].villagelog === undefined) {
 			chars[data.char].villagelog = [];
@@ -252,6 +289,23 @@ exports.checkSkill = (data) => {
 			value: data.to,
 			date: data.date,
 		};
+	}
+
+	if (data.name === 'Faith') {
+		if (data.date.getTime() > twodaysago.getTime()) {
+			if (chars[data.char].faith === undefined) {
+				chars[data.char].faith = {};
+			}
+			chars[data.char].faith[data.date.getTime()] = {
+				from: data.from,
+				to: data.to,
+				by: data.by,
+				date: data.date,
+			}
+		}
+		if (data.live === true) {
+			exports.event.emit('profile', 'faith', {char: data.char, data: chars[data.char].faith});
+		}
 	}
 };
 

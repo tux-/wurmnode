@@ -1,5 +1,7 @@
 'use strict';
 
+window.wurmnode = {};
+
 class Overlay {
 	close () {
 		gimle(window).off('.onOverlayOff');
@@ -270,6 +272,17 @@ const showParse = (data) => {
 	if (data.type === 'file') {
 		overlay.content('<p style="padding: 10px;">' + data.file + '</p>');
 	}
+};
+
+const showTime = (dt) => {
+	if (typeof dt === 'string') {
+		dt = new Date(dt);
+	}
+	let a = {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false};
+	if (dt.getFullYear() !== new Date().getFullYear()) {
+		a = {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false};
+	}
+	return new Intl.DateTimeFormat('en-GB', a).format(dt);
 };
 
 document.addEventListener('DOMContentLoaded', () => {
