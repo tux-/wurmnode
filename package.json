@@ -2,7 +2,7 @@
 	"name": "wurmnode",
 	"description": "App for Wurm Online",
 	"main": "app.js",
-	"version": "2.4.0",
+	"version": "2.5.0",
 	"scripts": {
 		"start": "electron .",
 		"postinstall": "install-app-deps",
@@ -35,7 +35,7 @@
 	"author": "Drogos",
 	"license": "MIT",
 	"devDependencies": {
-		"electron": "^12.0.5",
+		"electron": "^12.0.9",
 		"electron-builder": "^22.10.5"
 	},
 	"dependencies": {
